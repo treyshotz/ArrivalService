@@ -18,41 +18,40 @@ class PostResourceClient {
   private final ExecutorService executorService = Executors.newFixedThreadPool(5);
   private final HttpClient httpClient =
       HttpClient.newBuilder().executor(executorService).version(HttpClient.Version.HTTP_2).build();
-  
+
   AirportDBSingelton instance = AirportDBSingelton.getInstance();
-  
+
   @Scheduled(every = "10s")
   void sendArrivalRequests() {
-//    AirportDBSingelton.getInstance().airports.forEach(
-//            s -> retrieveArrivalsAirportInterval(s, getStartTime(), getEndTime())
-//    );
+    AirportDBSingelton.getInstance()
+        .airports
+        .forEach(
+            s ->
+                retrieveArrivalsAirportInterval(s, getStartTime(), getEndTime())
+                    .thenApply(this::convertAndSave));
+  }
 
-    var eddf = retrieveArrivalsAirportInterval("EDDF", getStartTime(), getEndTime());
-  
-    String b  = (String) ((CompletableFuture) eddf).join();
-  
-    
-    Gson g = new Gson();
-    JsonArray jsonArr= g.fromJson(b, JsonArray.class);
-    for (JsonElement jsonElement : jsonArr) {
-      Arrival arr = g.fromJson(jsonElement, Arrival.class);
+  CompletableFuture<Void> convertAndSave(String json) {
+    var g = new Gson();
+    for (JsonElement jsonElement : g.fromJson(json, JsonArray.class)) {
+      var arr = g.fromJson(jsonElement, Arrival.class);
       instance.insertArrivals(arr);
     }
-
+    return new CompletableFuture<>();
   }
-  
-  //TODO: Finish me with real times
+
+  // TODO: Finish me with real times
   String getStartTime() {
     return "1517227200";
   }
-  
-  //TODO: Finish me with real times
+
+  // TODO: Finish me with real times
   String getEndTime() {
     return "1517230800";
   }
-  
-  
-  CompletionStage<String> retrieveArrivalsAirportInterval(String airportNumber, String timeStart, String timeEnd) {
+
+  CompletionStage<String> retrieveArrivalsAirportInterval(
+      String airportNumber, String timeStart, String timeEnd) {
     return this.httpClient
         .sendAsync(
             HttpRequest.newBuilder()
