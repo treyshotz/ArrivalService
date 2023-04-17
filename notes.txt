@@ -1,0 +1,12 @@
+Italy coordinates:
+southernmost point; 35.45625287919582
+nothernmost point; 47.083333
+easternmost point; 18.516667
+westernmost point; 6.616667
+
+Example
+https://opensky-network.org/api/states/all?lamin=35.4562&lomin=6.6166&lamax=47.0833&lomax=18.5166
+https://opensky-network.org/api/states/all?lamin=45.8389&lomin=5.9962&lamax=47.8229&lomax=10.5226
+
+curl -s "https://opensky-network.org/api/states/all?lamin=35.4562&lomin=6.6166&lamax=47.0833&lomax=18.5166" | python -m json.tool
+curl -s "https://opensky-network.org/api/states/all?lamin=45.8389&lomin=5.9962&lamax=47.8229&lomax=10.5226" | python -m json.tool
