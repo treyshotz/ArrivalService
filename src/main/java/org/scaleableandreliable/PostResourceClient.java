@@ -5,6 +5,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import io.quarkus.scheduler.Scheduled;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -14,27 +16,35 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@ApplicationScoped
 class PostResourceClient {
-  private final ExecutorService executorService = Executors.newFixedThreadPool(5);
+  private final ExecutorService executorService = Executors.newFixedThreadPool(10);
   private final HttpClient httpClient =
       HttpClient.newBuilder().executor(executorService).version(HttpClient.Version.HTTP_2).build();
 
-  AirportDBSingelton instance = AirportDBSingelton.getInstance();
+  
+  @Inject
+  AirportDBSingleton instance;
 
-  @Scheduled(every = "10s")
+  @Scheduled(every = "1h")
   void sendArrivalRequests() {
-    AirportDBSingelton.getInstance()
+    if(instance.airports.isEmpty()) {
+      instance.RetrieveAirportsFromDB();
+    }
+
+    instance
         .airports
         .forEach(
-            s ->
-                retrieveArrivalsAirportInterval(s, getStartTime(), getEndTime())
-                    .thenApply(this::convertAndSave));
+            airportId ->
+                retrieveArrivalsAirportInterval(airportId, getStartTime(), getEndTime())
+                    .thenApplyAsync(this::convertAndSave)
+                    .thenRunAsync(() -> System.out.println("Finished inserting for" + airportId)));
   }
 
   CompletableFuture<Void> convertAndSave(String json) {
     var g = new Gson();
     for (JsonElement jsonElement : g.fromJson(json, JsonArray.class)) {
-      var arr = g.fromJson(jsonElement, Arrival.class);
+      var arr = g.fromJson(jsonElement, Arrivals.class);
       instance.insertArrivals(arr);
     }
     return new CompletableFuture<>();

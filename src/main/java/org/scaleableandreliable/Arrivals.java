@@ -1,6 +1,11 @@
 package org.scaleableandreliable;
 
-public class Arrival {
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import java.util.Random;
+
+@Entity
+public class Arrivals {
   
   String icao24;
   int firstSeen;
@@ -14,12 +19,14 @@ public class Arrival {
   int estArrivalAirportVertDistance;
   int departureAirportCandidatesCount;
   int arrivalAirportCandidatesCount;
+  @Id
+  Long id;
   
   public String getIcao24() {
     return icao24;
   }
   
-  public Arrival setIcao24(String icao24) {
+  public Arrivals setIcao24(String icao24) {
     this.icao24 = icao24;
     return this;
   }
@@ -28,7 +35,7 @@ public class Arrival {
     return firstSeen;
   }
   
-  public Arrival setFirstSeen(int firstSeen) {
+  public Arrivals setFirstSeen(int firstSeen) {
     this.firstSeen = firstSeen;
     return this;
   }
@@ -37,7 +44,7 @@ public class Arrival {
     return estDepartureAirport;
   }
   
-  public Arrival setEstDepartureAirport(String estDepartureAirport) {
+  public Arrivals setEstDepartureAirport(String estDepartureAirport) {
     this.estDepartureAirport = estDepartureAirport;
     return this;
   }
@@ -46,7 +53,7 @@ public class Arrival {
     return lastSeen;
   }
   
-  public Arrival setLastSeen(int lastSeen) {
+  public Arrivals setLastSeen(int lastSeen) {
     this.lastSeen = lastSeen;
     return this;
   }
@@ -55,7 +62,7 @@ public class Arrival {
     return estArrivalAirport;
   }
   
-  public Arrival setEstArrivalAirport(String estArrivalAirport) {
+  public Arrivals setEstArrivalAirport(String estArrivalAirport) {
     this.estArrivalAirport = estArrivalAirport;
     return this;
   }
@@ -64,7 +71,7 @@ public class Arrival {
     return callsign;
   }
   
-  public Arrival setCallsign(String callsign) {
+  public Arrivals setCallsign(String callsign) {
     this.callsign = callsign;
     return this;
   }
@@ -73,7 +80,7 @@ public class Arrival {
     return estDepartureAirportHorizDistance;
   }
   
-  public Arrival setEstDepartureAirportHorizDistance(int estDepartureAirportHorizDistance) {
+  public Arrivals setEstDepartureAirportHorizDistance(int estDepartureAirportHorizDistance) {
     this.estDepartureAirportHorizDistance = estDepartureAirportHorizDistance;
     return this;
   }
@@ -82,7 +89,7 @@ public class Arrival {
     return estDepartureAirportVertDistance;
   }
   
-  public Arrival setEstDepartureAirportVertDistance(int estDepartureAirportVertDistance) {
+  public Arrivals setEstDepartureAirportVertDistance(int estDepartureAirportVertDistance) {
     this.estDepartureAirportVertDistance = estDepartureAirportVertDistance;
     return this;
   }
@@ -91,7 +98,7 @@ public class Arrival {
     return estArrivalAirportHorizDistance;
   }
   
-  public Arrival setEstArrivalAirportHorizDistance(int estArrivalAirportHorizDistance) {
+  public Arrivals setEstArrivalAirportHorizDistance(int estArrivalAirportHorizDistance) {
     this.estArrivalAirportHorizDistance = estArrivalAirportHorizDistance;
     return this;
   }
@@ -100,7 +107,7 @@ public class Arrival {
     return estArrivalAirportVertDistance;
   }
   
-  public Arrival setEstArrivalAirportVertDistance(int estArrivalAirportVertDistance) {
+  public Arrivals setEstArrivalAirportVertDistance(int estArrivalAirportVertDistance) {
     this.estArrivalAirportVertDistance = estArrivalAirportVertDistance;
     return this;
   }
@@ -109,7 +116,7 @@ public class Arrival {
     return departureAirportCandidatesCount;
   }
   
-  public Arrival setDepartureAirportCandidatesCount(int departureAirportCandidatesCount) {
+  public Arrivals setDepartureAirportCandidatesCount(int departureAirportCandidatesCount) {
     this.departureAirportCandidatesCount = departureAirportCandidatesCount;
     return this;
   }
@@ -118,8 +125,24 @@ public class Arrival {
     return arrivalAirportCandidatesCount;
   }
   
-  public Arrival setArrivalAirportCandidatesCount(int arrivalAirportCandidatesCount) {
+  public Arrivals setArrivalAirportCandidatesCount(int arrivalAirportCandidatesCount) {
     this.arrivalAirportCandidatesCount = arrivalAirportCandidatesCount;
     return this;
+  }
+  
+  public void setId(Long id) {
+    this.id = id;
+  }
+  
+  
+  public Long getId() {
+    if(this.id == null) {
+      generateId();
+    }
+    return id;
+  }
+  
+  public void generateId() {
+    this.id = new Random().nextLong();
   }
 }
