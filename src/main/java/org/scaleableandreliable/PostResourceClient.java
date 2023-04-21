@@ -36,7 +36,12 @@ class PostResourceClient {
         airportId ->
             retrieveArrivalsAirportInterval(airportId, getStartTime(), getEndTime())
                 .thenApplyAsync(this::convertAndSave)
-                .thenRunAsync(() -> log.info("Finished inserting for " + airportId)));
+                .thenRunAsync(() -> log.info("Finished inserting for " + airportId))
+                .exceptionally(
+                    e -> {
+                      log.error("Got an exception in the scheduled task", e);
+                      return null;
+                    }));
   }
 
   CompletableFuture<Void> convertAndSave(String json) {
@@ -60,22 +65,24 @@ class PostResourceClient {
 
   CompletionStage<String> retrieveArrivalsAirportInterval(
       String airportNumber, String timeStart, String timeEnd) {
-    return this.httpClient
-        .sendAsync(
-            HttpRequest.newBuilder()
-                .GET()
-                .uri(
-                    URI.create(
-                        "https://opensky-network.org/api/flights/arrival?airport="
-                            + airportNumber
-                            + "&begin="
-                            + timeStart
-                            + "&end="
-                            + timeEnd))
-                .header("Accept", "application/json")
-                .build(),
-            HttpResponse.BodyHandlers.ofString())
-        .thenApply(HttpResponse::body)
-        .toCompletableFuture();
+    var accept = this.httpClient
+            .sendAsync(
+                    HttpRequest.newBuilder()
+                            .GET()
+                            .uri(
+                                    URI.create(
+                                            "https://opensky-network.org/api/flights/arrival?airport="
+                                                    + airportNumber
+                                                    + "&begin="
+                                                    + timeStart
+                                                    + "&end="
+                                                    + timeEnd))
+                            .header("Accept", "application/json")
+                            .build(),
+                    HttpResponse.BodyHandlers.ofString())
+            .thenApply(HttpResponse::body)
+            .toCompletableFuture();
+    return accept;
+    
   }
 }
