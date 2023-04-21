@@ -15,15 +15,12 @@ import java.util.List;
 @Singleton
 public class AirportDBSingleton {
 
-  private AgroalDataSource ds;
-
-  private EntityManager em;
-
-  @Inject Logger log;
-
   static AirportDBSingleton instance;
+  @Inject Logger log;
   // Will use this as a cache
   List<String> airports;
+  private AgroalDataSource ds;
+  private EntityManager em;
 
   public AirportDBSingleton() {
     this.airports = new ArrayList<>();
@@ -36,7 +33,7 @@ public class AirportDBSingleton {
   public void retrieveAirportsFromDB() {
 
     try (var session = ds.getConnection();
-        var statement = session.createStatement(); ) {
+        var statement = session.createStatement()) {
       String sql = "SELECT a.icao24 FROM Airports a";
       statement.execute(sql);
       var resultSet = statement.getResultSet();
@@ -57,7 +54,7 @@ public class AirportDBSingleton {
     String sql = getSql(ar);
 
     try (var session = ds.getConnection();
-        var statement = session.createStatement(); ) {
+        var statement = session.createStatement()) {
       statement.execute(sql);
       log.info("Added arrivals for airport" + ar.icao24);
     } catch (SQLException e) {
@@ -65,7 +62,7 @@ public class AirportDBSingleton {
     }
   }
 
-  private String getSql(Arrivals ar) {
+  String getSql(Arrivals ar) {
     return "INSERT INTO Arrivals (id, icao24, firstSeen, estDepartureAirport, lastSeen, estArrivalAirport, callsign, estDepartureAirportHorizDistance, estDepartureAirportVertDistance, estArrivalAirportHorizDistance, estArrivalAirportVertDistance, departureAirportCandidatesCount, arrivalAirportCandidatesCount)"
         + " VALUES ("
         + ar.getId()
@@ -108,14 +105,14 @@ public class AirportDBSingleton {
     return ds;
   }
 
-  public EntityManager getEm() {
-    return em;
-  }
-
   @Inject
   public AirportDBSingleton setDs(AgroalDataSource ds) {
     this.ds = ds;
     return this;
+  }
+
+  public EntityManager getEm() {
+    return em;
   }
 
   public AirportDBSingleton setEm(EntityManager em) {
