@@ -38,6 +38,7 @@ public class DBSingleton {
 
   void onApplicationStart(@Observes StartupEvent e) {
     log.info("Application started");
+    retrieveAirportsFromDB();
   }
 
   public void retrieveAirportsFromDB() {

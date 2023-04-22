@@ -21,7 +21,7 @@ import java.util.concurrent.Executors;
 
 @ApplicationScoped
 public class ArrivalClient {
-  static final String arrivalString = "Arrival";
+  static final String arrivalString = "Arrivals";
   private final ExecutorService executorService = Executors.newFixedThreadPool(10);
   HttpClient httpClient =
       HttpClient.newBuilder().executor(executorService).version(HttpClient.Version.HTTP_2).build();
@@ -39,7 +39,7 @@ public class ArrivalClient {
             airportId ->
                 retrieveArrivalsAirportInterval(airportId, getStartTime(), getEndTime())
                     .thenApplyAsync(this::convertAndSave)
-                    .thenRunAsync(() -> log.info("Finished inserting for " + airportId))
+                    .thenRunAsync(() -> log.info("Finished inserting arrivals for " + airportId))
                     .exceptionally(
                         e -> {
                           log.error("Got an exception in the scheduled task", e);
