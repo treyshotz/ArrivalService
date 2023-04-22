@@ -1,8 +1,10 @@
-package org.scaleableandreliable;
+package org.scaleableandreliable.DBhandlers;
 
 import io.agroal.api.AgroalDataSource;
 import io.quarkus.runtime.StartupEvent;
 import org.jboss.logging.Logger;
+import org.scaleableandreliable.models.Arrivals;
+import org.scaleableandreliable.models.GenericArDep;
 
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
@@ -13,17 +15,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Singleton
-public class AirportDBSingleton {
+public class DBSingleton {
 
-  static AirportDBSingleton instance;
+  static DBSingleton instance;
   @Inject Logger log;
   // Will use this as a cache
   List<String> airports;
   private AgroalDataSource ds;
   private EntityManager em;
 
-  public AirportDBSingleton() {
+  public DBSingleton() {
     this.airports = new ArrayList<>();
+  }
+
+  public static DBSingleton getInstance() {
+    return instance;
+  }
+
+  public static void setInstance(DBSingleton instance) {
+    DBSingleton.instance = instance;
   }
 
   void onApplicationStart(@Observes StartupEvent e) {
@@ -45,25 +55,27 @@ public class AirportDBSingleton {
     }
   }
 
-  public void insertArrivals(Arrivals ar) {
+  public void insertArrivals(Arrivals ar, String tableName) {
 
     if (ar.getId() == null) {
       ar.generateId();
     }
 
-    String sql = getSql(ar);
+    String sql = getArDepInsertSql(ar, tableName);
 
     try (var session = ds.getConnection();
         var statement = session.createStatement()) {
       statement.execute(sql);
-      log.info("Added arrivals for airport" + ar.icao24);
+      log.info("Added " + tableName + " for airport" + ar.getIcao24());
     } catch (SQLException e) {
-      log.error("Got an error while inserting arrivals", e);
+      log.error("Got an error while inserting " + tableName, e);
     }
   }
 
-  String getSql(Arrivals ar) {
-    return "INSERT INTO Arrivals (id, icao24, firstSeen, estDepartureAirport, lastSeen, estArrivalAirport, callsign, estDepartureAirportHorizDistance, estDepartureAirportVertDistance, estArrivalAirportHorizDistance, estArrivalAirportVertDistance, departureAirportCandidatesCount, arrivalAirportCandidatesCount)"
+  public String getArDepInsertSql(GenericArDep ar, String tableName) {
+    return "INSERT INTO "
+        + tableName
+        + " (id, icao24, firstSeen, estDepartureAirport, lastSeen, estArrivalAirport, callsign, estDepartureAirportHorizDistance, estDepartureAirportVertDistance, estArrivalAirportHorizDistance, estArrivalAirportVertDistance, departureAirportCandidatesCount, arrivalAirportCandidatesCount)"
         + " VALUES ("
         + ar.getId()
         + ","
@@ -106,7 +118,7 @@ public class AirportDBSingleton {
   }
 
   @Inject
-  public AirportDBSingleton setDs(AgroalDataSource ds) {
+  public DBSingleton setDs(AgroalDataSource ds) {
     this.ds = ds;
     return this;
   }
@@ -115,8 +127,26 @@ public class AirportDBSingleton {
     return em;
   }
 
-  public AirportDBSingleton setEm(EntityManager em) {
+  public DBSingleton setEm(EntityManager em) {
     this.em = em;
+    return this;
+  }
+
+  public Logger getLog() {
+    return log;
+  }
+
+  public DBSingleton setLog(Logger log) {
+    this.log = log;
+    return this;
+  }
+
+  public List<String> getAirports() {
+    return airports;
+  }
+
+  public DBSingleton setAirports(List<String> airports) {
+    this.airports = airports;
     return this;
   }
 }

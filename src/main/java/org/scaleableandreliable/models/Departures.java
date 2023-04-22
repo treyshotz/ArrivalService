@@ -1,11 +1,11 @@
-package org.scaleableandreliable;
+package org.scaleableandreliable.models;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.util.Random;
 
 @Entity
-public class Arrivals {
+public class Departures extends GenericArDep {
 
   String icao24;
   int firstSeen;
@@ -25,7 +25,7 @@ public class Arrivals {
     return icao24;
   }
 
-  public Arrivals setIcao24(String icao24) {
+  public Departures setIcao24(String icao24) {
     this.icao24 = icao24;
     return this;
   }
@@ -34,7 +34,7 @@ public class Arrivals {
     return firstSeen;
   }
 
-  public Arrivals setFirstSeen(int firstSeen) {
+  public Departures setFirstSeen(int firstSeen) {
     this.firstSeen = firstSeen;
     return this;
   }
@@ -43,7 +43,7 @@ public class Arrivals {
     return estDepartureAirport;
   }
 
-  public Arrivals setEstDepartureAirport(String estDepartureAirport) {
+  public Departures setEstDepartureAirport(String estDepartureAirport) {
     this.estDepartureAirport = estDepartureAirport;
     return this;
   }
@@ -52,7 +52,7 @@ public class Arrivals {
     return lastSeen;
   }
 
-  public Arrivals setLastSeen(int lastSeen) {
+  public Departures setLastSeen(int lastSeen) {
     this.lastSeen = lastSeen;
     return this;
   }
@@ -61,7 +61,7 @@ public class Arrivals {
     return estArrivalAirport;
   }
 
-  public Arrivals setEstArrivalAirport(String estArrivalAirport) {
+  public Departures setEstArrivalAirport(String estArrivalAirport) {
     this.estArrivalAirport = estArrivalAirport;
     return this;
   }
@@ -70,7 +70,7 @@ public class Arrivals {
     return callsign;
   }
 
-  public Arrivals setCallsign(String callsign) {
+  public Departures setCallsign(String callsign) {
     this.callsign = callsign;
     return this;
   }
@@ -79,7 +79,7 @@ public class Arrivals {
     return estDepartureAirportHorizDistance;
   }
 
-  public Arrivals setEstDepartureAirportHorizDistance(int estDepartureAirportHorizDistance) {
+  public Departures setEstDepartureAirportHorizDistance(int estDepartureAirportHorizDistance) {
     this.estDepartureAirportHorizDistance = estDepartureAirportHorizDistance;
     return this;
   }
@@ -88,7 +88,7 @@ public class Arrivals {
     return estDepartureAirportVertDistance;
   }
 
-  public Arrivals setEstDepartureAirportVertDistance(int estDepartureAirportVertDistance) {
+  public Departures setEstDepartureAirportVertDistance(int estDepartureAirportVertDistance) {
     this.estDepartureAirportVertDistance = estDepartureAirportVertDistance;
     return this;
   }
@@ -97,7 +97,7 @@ public class Arrivals {
     return estArrivalAirportHorizDistance;
   }
 
-  public Arrivals setEstArrivalAirportHorizDistance(int estArrivalAirportHorizDistance) {
+  public Departures setEstArrivalAirportHorizDistance(int estArrivalAirportHorizDistance) {
     this.estArrivalAirportHorizDistance = estArrivalAirportHorizDistance;
     return this;
   }
@@ -106,7 +106,7 @@ public class Arrivals {
     return estArrivalAirportVertDistance;
   }
 
-  public Arrivals setEstArrivalAirportVertDistance(int estArrivalAirportVertDistance) {
+  public Departures setEstArrivalAirportVertDistance(int estArrivalAirportVertDistance) {
     this.estArrivalAirportVertDistance = estArrivalAirportVertDistance;
     return this;
   }
@@ -115,7 +115,7 @@ public class Arrivals {
     return departureAirportCandidatesCount;
   }
 
-  public Arrivals setDepartureAirportCandidatesCount(int departureAirportCandidatesCount) {
+  public Departures setDepartureAirportCandidatesCount(int departureAirportCandidatesCount) {
     this.departureAirportCandidatesCount = departureAirportCandidatesCount;
     return this;
   }
@@ -124,7 +124,7 @@ public class Arrivals {
     return arrivalAirportCandidatesCount;
   }
 
-  public Arrivals setArrivalAirportCandidatesCount(int arrivalAirportCandidatesCount) {
+  public Departures setArrivalAirportCandidatesCount(int arrivalAirportCandidatesCount) {
     this.arrivalAirportCandidatesCount = arrivalAirportCandidatesCount;
     return this;
   }
@@ -136,7 +136,7 @@ public class Arrivals {
     return id;
   }
 
-  public Arrivals setId(Long id) {
+  public Departures setId(Long id) {
     this.id = id;
     return this;
   }

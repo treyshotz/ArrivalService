@@ -8,6 +8,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
+import org.scaleableandreliable.DBhandlers.DBSingleton;
+import org.scaleableandreliable.models.Arrivals;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -20,12 +22,16 @@ import static org.mockito.Mockito.*;
 
 @QuarkusTest
 @TestProfile(MockDBProfile.class)
-class AirportDBSingletonTest {
+class DBSingletonTest {
 
-  @InjectMocks AirportDBSingleton instance;
+  @InjectMocks
+  DBSingleton instance;
 
   AgroalDataSource dsMock;
   Logger logMock;
+  
+  static final String arrivalString = "Arrivals";
+  static final String departureString = "Departures";
 
   @BeforeEach
   void setUp() {
@@ -33,7 +39,7 @@ class AirportDBSingletonTest {
     dsMock = mock(AgroalDataSource.class);
     instance.setDs(dsMock);
     logMock = mock(Logger.class);
-    instance.log = logMock;
+    instance.setLog(logMock);
   }
 
   @Test
@@ -51,7 +57,7 @@ class AirportDBSingletonTest {
     instance.retrieveAirportsFromDB();
 
     verify(resultMock, times(2)).next();
-    assertThat(instance.airports.size(), is(1));
+    assertThat(instance.getAirports().size(), is(1));
   }
 
   @Test
@@ -69,7 +75,7 @@ class AirportDBSingletonTest {
 
     verify(resultMock, times(0)).next();
     verify(logMock, times(1)).error(anyString(), any(SQLException.class));
-    assertThat(instance.airports.size(), is(0));
+    assertThat(instance.getAirports().size(), is(0));
   }
 
   @Test
@@ -95,7 +101,7 @@ class AirportDBSingletonTest {
     doReturn(stateMock).when(connMock).createStatement();
     doReturn(connMock).when(dsMock).getConnection();
 
-    instance.insertArrivals(arrival);
+    instance.insertArrivals(arrival, "Arrivals");
 
     verify(logMock, times(1)).info(anyString());
     verify(stateMock, times(1)).execute(anyString());
@@ -121,6 +127,6 @@ class AirportDBSingletonTest {
 
     String expected =
         "INSERT INTO Arrivals (id, icao24, firstSeen, estDepartureAirport, lastSeen, estArrivalAirport, callsign, estDepartureAirportHorizDistance, estDepartureAirportVertDistance, estArrivalAirportHorizDistance, estArrivalAirportVertDistance, departureAirportCandidatesCount, arrivalAirportCandidatesCount) VALUES (123,'0101be',1517220729,'null',1517230737,'EDDF','MSR785  ',0,0,1593,95,0,2);";
-    assertThat(expected, is(instance.getSql(arrival)));
+    assertThat(expected, is(instance.getArDepInsertSql(arrival, arrivalString)));
   }
 }
