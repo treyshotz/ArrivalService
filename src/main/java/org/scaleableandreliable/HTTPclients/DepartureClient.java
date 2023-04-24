@@ -3,7 +3,6 @@ package org.scaleableandreliable.HTTPclients;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import io.quarkus.scheduler.Scheduled;
 import org.jboss.logging.Logger;
 import org.scaleableandreliable.DBhandlers.DBSingleton;
 import org.scaleableandreliable.models.Arrivals;
@@ -51,7 +50,7 @@ public class DepartureClient {
     var g = new Gson();
     for (JsonElement jsonElement : g.fromJson(json, JsonArray.class)) {
       var arr = g.fromJson(jsonElement, Arrivals.class);
-      instance.insertArrivals(arr, departureString);
+      instance.insertArrDep(arr, departureString);
     }
     return new CompletableFuture<>();
   }

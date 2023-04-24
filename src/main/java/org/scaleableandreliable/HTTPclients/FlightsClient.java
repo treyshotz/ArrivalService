@@ -7,7 +7,7 @@ import com.google.gson.JsonObject;
 import io.quarkus.scheduler.Scheduled;
 import org.jboss.logging.Logger;
 import org.scaleableandreliable.DBhandlers.DBSingleton;
-import org.scaleableandreliable.models.Arrivals;
+import org.scaleableandreliable.models.AircraftState;
 import org.scaleableandreliable.models.Coordinates;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -25,7 +25,6 @@ import java.util.concurrent.Executors;
 @ApplicationScoped
 public class FlightsClient {
 
-  static final String departureString = "Departures";
   private final ExecutorService executorService = Executors.newFixedThreadPool(10);
   HttpClient httpClient =
       HttpClient.newBuilder().executor(executorService).version(HttpClient.Version.HTTP_2).build();
@@ -50,11 +49,13 @@ public class FlightsClient {
 
   public CompletableFuture<Void> convertAndSave(String json) {
     var g = new Gson();
-    var asJsonArray = g.fromJson(json, JsonObject.class).getAsJsonArray();
-    
-    for (JsonElement jsonElement : g.fromJson(json, JsonObject.class).getAsJsonArray()) {
-      var arr = g.fromJson(jsonElement, Arrivals.class);
-      instance.insertArrivals(arr, departureString);
+
+    var jsonObject = g.fromJson(json, JsonObject.class);
+
+    for (JsonElement jsonElement : jsonObject.get("states").getAsJsonArray()) {
+      JsonArray arr = jsonElement.getAsJsonArray();
+
+      instance.insertStates(new AircraftState(arr, jsonObject.get("time").getAsLong()));
     }
     return new CompletableFuture<>();
   }

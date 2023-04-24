@@ -3,6 +3,7 @@ package org.scaleableandreliable.DBhandlers;
 import io.agroal.api.AgroalDataSource;
 import io.quarkus.runtime.StartupEvent;
 import org.jboss.logging.Logger;
+import org.scaleableandreliable.models.AircraftState;
 import org.scaleableandreliable.models.Arrivals;
 import org.scaleableandreliable.models.Coordinates;
 import org.scaleableandreliable.models.GenericArDep;
@@ -11,6 +12,7 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.persistence.EntityManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +28,14 @@ public class DBSingleton {
 
   private AgroalDataSource ds;
   private EntityManager em;
+
+  static String sqlArrDep = "";
+
+  static String sqlState =
+      "INSERT INTO AircraftState (icao24, callsign, originCountry, timePosition, lastContact,"
+          + "longitude, latitude, baroAltitude, onGround, velocity, trueTrack, verticalRate,"
+          + "sensors, geoAltitude, squawk, spi, positionSource, category, timeStamp)"
+          + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
   public DBSingleton() {
     this.airports = new ArrayList<>();
@@ -81,62 +91,80 @@ public class DBSingleton {
     }
   }
 
-  public void insertArrivals(Arrivals ar, String tableName) {
+  public void insertStates(AircraftState aircraftState) {
+    try (var session = ds.getConnection();
+        var statement = session.prepareStatement(sqlState)) {
+
+      prepareInsert(statement, aircraftState);
+      statement.execute();
+
+      log.info("Added state for icao" + aircraftState.getIcao24());
+    } catch (SQLException e) {
+      log.error("Got an error while inserting " + aircraftState.getIcao24(), e);
+    }
+  }
+
+  public void insertArrDep(Arrivals ar, String tableName) {
 
     if (ar.getId() == null) {
       ar.generateId();
     }
 
-    String sql = getArDepInsertSql(ar, tableName);
-
     try (var session = ds.getConnection();
-        var statement = session.createStatement()) {
-      statement.execute(sql);
+        var statement = session.prepareStatement(getArDepInsertSql(tableName))) {
+      
+      prepareInsert(statement, ar);
+      statement.execute();
+      
       log.info("Added " + tableName + " for airport" + ar.getIcao24());
     } catch (SQLException e) {
       log.error("Got an error while inserting " + tableName, e);
     }
   }
 
-  public String getArDepInsertSql(GenericArDep ar, String tableName) {
+  public String getArDepInsertSql(String tableName) {
     return "INSERT INTO "
         + tableName
-        + " (id, icao24, firstSeen, estDepartureAirport, lastSeen, estArrivalAirport, callsign, estDepartureAirportHorizDistance, estDepartureAirportVertDistance, estArrivalAirportHorizDistance, estArrivalAirportVertDistance, departureAirportCandidatesCount, arrivalAirportCandidatesCount)"
-        + " VALUES ("
-        + ar.getId()
-        + ","
-        + "'"
-        + ar.getIcao24()
-        + "'"
-        + ","
-        + ar.getFirstSeen()
-        + ","
-        + "'"
-        + ar.getEstDepartureAirport()
-        + "'"
-        + ","
-        + ar.getLastSeen()
-        + ","
-        + "'"
-        + ar.getEstArrivalAirport()
-        + "'"
-        + ","
-        + "'"
-        + ar.getCallsign()
-        + "'"
-        + ","
-        + ar.getEstDepartureAirportHorizDistance()
-        + ","
-        + ar.getEstDepartureAirportVertDistance()
-        + ","
-        + ar.getEstArrivalAirportHorizDistance()
-        + ","
-        + ar.getEstArrivalAirportVertDistance()
-        + ","
-        + ar.getDepartureAirportCandidatesCount()
-        + ","
-        + ar.getArrivalAirportCandidatesCount()
-        + ");";
+        + " (id, icao24, firstSeen, estDepartureAirport, lastSeen, estArrivalAirport, callsign, estDepartureAirportHorizDistance, estDepartureAirportVertDistance, estArrivalAirportHorizDistance, estArrivalAirportVertDistance, departureAirportCandidatesCount, arrivalAirportCandidatesCount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+  }
+
+  public void prepareInsert(PreparedStatement statement, GenericArDep ar) throws SQLException {
+    statement.setLong(1, ar.getId());
+    statement.setString(2, ar.getIcao24());
+    statement.setInt(3, ar.getFirstSeen());
+    statement.setString(4, ar.getEstDepartureAirport());
+    statement.setInt(5, ar.getLastSeen());
+    statement.setString(6, ar.getEstArrivalAirport());
+    statement.setString(7, ar.getCallsign());
+    statement.setInt(8, ar.getEstDepartureAirportHorizDistance());
+    statement.setInt(9, ar.getEstDepartureAirportVertDistance());
+    statement.setInt(10, ar.getEstArrivalAirportHorizDistance());
+    statement.setInt(11, ar.getEstArrivalAirportVertDistance());
+    statement.setInt(12, ar.getDepartureAirportCandidatesCount());
+    statement.setInt(13, ar.getArrivalAirportCandidatesCount());
+  }
+
+  void prepareInsert(PreparedStatement statement, AircraftState aircraftState) throws SQLException {
+    statement.setString(1, aircraftState.getIcao24());
+    statement.setString(2, aircraftState.getCallsign());
+    statement.setString(3, aircraftState.getOriginCountry());
+    statement.setInt(4, aircraftState.getTimePosition());
+    statement.setInt(5, aircraftState.getLastContact());
+    statement.setFloat(6, aircraftState.getLongitude());
+    statement.setFloat(7, aircraftState.getLatitude());
+    statement.setFloat(8, aircraftState.getBaroAltitude());
+    statement.setBoolean(9, aircraftState.isOnGround());
+    statement.setFloat(10, aircraftState.getVelocity());
+    statement.setFloat(11, aircraftState.getTrueTrack());
+    statement.setFloat(12, aircraftState.getVerticalRate());
+    //TODO: Fixme
+    statement.setString(13, null);
+    statement.setFloat(14, aircraftState.getGeoAltitude());
+    statement.setString(15, aircraftState.getSquawk());
+    statement.setBoolean(16, aircraftState.isSpi());
+    statement.setInt(17, aircraftState.getPositionSource());
+    statement.setInt(18, aircraftState.getCategory());
+    statement.setLong(19, aircraftState.getTimeStamp());
   }
 
   public AgroalDataSource getDs() {
@@ -175,11 +203,11 @@ public class DBSingleton {
     this.airports = airports;
     return this;
   }
-  
+
   public List<Coordinates> getCoordinates() {
     return coordinates;
   }
-  
+
   public DBSingleton setCoordinates(List<Coordinates> coordinates) {
     this.coordinates = coordinates;
     return this;

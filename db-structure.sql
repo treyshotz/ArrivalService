@@ -53,7 +53,6 @@ CREATE TABLE Coordinates
 );
 
 
-
 INSERT INTO Coordinates (id, description, position)
 VALUES (0, 'North', 47.083333),
        (1, 'South', 35.45625287919582),
@@ -171,3 +170,27 @@ VALUES ('LIAA', 'Terni Alvaro Leonardi Airport', 'Terni'),
         ('LIRU', 'Rome Urbe Airport', 'Rome'),
         ('LIRV', 'Viterbo Air Force Base / Rome Viterbo Airport', 'Viterbo'),
         ('LIRZ', 'Perugia San Francesco d\'Assisi – Umbria International Airport', 'Perugia');
+
+
+CREATE TABLE AircraftState (
+                               icao24 VARCHAR(255),
+                               callsign VARCHAR(255),
+                               originCountry VARCHAR(255),
+                               timePosition INT,
+                               lastContact INT,
+                               longitude FLOAT,
+                               latitude FLOAT,
+                               baroAltitude FLOAT,
+                               onGround BOOLEAN,
+                               velocity FLOAT,
+                               trueTrack FLOAT,
+                               verticalRate FLOAT,
+                               sensors TEXT,
+                               geoAltitude FLOAT,
+                               squawk VARCHAR(255),
+                               spi BOOLEAN,
+                               positionSource INT,
+                               category INT,
+                               timeStamp BIGINT NOT NULL,
+                               PRIMARY KEY (timeStamp, icao24)
+);

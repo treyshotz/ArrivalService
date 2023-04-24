@@ -11,10 +11,7 @@ import org.mockito.MockitoAnnotations;
 import org.scaleableandreliable.DBhandlers.DBSingleton;
 import org.scaleableandreliable.models.Arrivals;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -81,16 +78,16 @@ class DBSingletonTest {
   @Test
   void testInsertArrivals() throws SQLException {
     var connMock = mock(Connection.class);
-    var stateMock = mock(Statement.class);
+    var stateMock = mock(PreparedStatement.class);
     var arrival =
         new Arrivals()
             .setId(1L)
-            .setIcao24("")
+            .setIcao24("abc")
             .setFirstSeen(0)
-            .setEstDepartureAirport("")
+            .setEstDepartureAirport("abc")
             .setLastSeen(0)
-            .setEstArrivalAirport("")
-            .setCallsign("")
+            .setEstArrivalAirport("abc")
+            .setCallsign("abc")
             .setEstDepartureAirportHorizDistance(0)
             .setEstDepartureAirportVertDistance(0)
             .setEstArrivalAirportHorizDistance(0)
@@ -98,35 +95,19 @@ class DBSingletonTest {
             .setDepartureAirportCandidatesCount(0)
             .setArrivalAirportCandidatesCount(0);
 
-    doReturn(stateMock).when(connMock).createStatement();
+    doReturn(stateMock).when(connMock).prepareStatement(anyString());
     doReturn(connMock).when(dsMock).getConnection();
-
-    instance.insertArrivals(arrival, "Arrivals");
+    
+    instance.insertArrDep(arrival, "Arrivals");
 
     verify(logMock, times(1)).info(anyString());
-    verify(stateMock, times(1)).execute(anyString());
+    verify(stateMock, times(1)).execute();
   }
 
   @Test
   void testGetSql() {
-    var arrival =
-        new Arrivals()
-            .setIcao24("0101be")
-            .setFirstSeen(1517220729)
-            .setEstDepartureAirport(null)
-            .setLastSeen(1517230737)
-            .setEstArrivalAirport("EDDF")
-            .setCallsign("MSR785  ")
-            .setEstDepartureAirportHorizDistance(0)
-            .setEstDepartureAirportVertDistance(0)
-            .setEstArrivalAirportHorizDistance(1593)
-            .setDepartureAirportCandidatesCount(0)
-            .setEstArrivalAirportVertDistance(95)
-            .setArrivalAirportCandidatesCount(2)
-            .setId(123L);
-
     String expected =
-        "INSERT INTO Arrivals (id, icao24, firstSeen, estDepartureAirport, lastSeen, estArrivalAirport, callsign, estDepartureAirportHorizDistance, estDepartureAirportVertDistance, estArrivalAirportHorizDistance, estArrivalAirportVertDistance, departureAirportCandidatesCount, arrivalAirportCandidatesCount) VALUES (123,'0101be',1517220729,'null',1517230737,'EDDF','MSR785  ',0,0,1593,95,0,2);";
-    assertThat(expected, is(instance.getArDepInsertSql(arrival, arrivalString)));
+        "INSERT INTO Arrivals (id, icao24, firstSeen, estDepartureAirport, lastSeen, estArrivalAirport, callsign, estDepartureAirportHorizDistance, estDepartureAirportVertDistance, estArrivalAirportHorizDistance, estArrivalAirportVertDistance, departureAirportCandidatesCount, arrivalAirportCandidatesCount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    assertThat(expected, is(instance.getArDepInsertSql(arrivalString)));
   }
 }
