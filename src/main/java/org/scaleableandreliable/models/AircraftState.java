@@ -17,9 +17,8 @@ class CompositeKey implements Serializable {
 @Entity
 @IdClass(CompositeKey.class)
 public class AircraftState {
-  
-  @Id
-  private String icao24;
+
+  @Id private String icao24;
   private String callsign;
   private String originCountry;
   private int timePosition;
@@ -38,14 +37,54 @@ public class AircraftState {
   private int positionSource;
   private int category;
   @Id private long timeStamp;
-  
-  public AircraftState() {
-  
+
+  public AircraftState() {}
+
+  public AircraftState(
+      String icao24,
+      String callsign,
+      String originCountry,
+      int timePosition,
+      int lastContact,
+      float longitude,
+      float latitude,
+      float baroAltitude,
+      boolean onGround,
+      float velocity,
+      float trueTrack,
+      float verticalRate,
+      List<Integer> sensors,
+      float geoAltitude,
+      String squawk,
+      boolean spi,
+      int positionSource,
+      int category,
+      long timeStamp) {
+    this.icao24 = icao24;
+    this.callsign = callsign;
+    this.originCountry = originCountry;
+    this.timePosition = timePosition;
+    this.lastContact = lastContact;
+    this.longitude = longitude;
+    this.latitude = latitude;
+    this.baroAltitude = baroAltitude;
+    this.onGround = onGround;
+    this.velocity = velocity;
+    this.trueTrack = trueTrack;
+    this.verticalRate = verticalRate;
+    this.sensors = sensors;
+    this.geoAltitude = geoAltitude;
+    this.squawk = squawk;
+    this.spi = spi;
+    this.positionSource = positionSource;
+    this.category = category;
+    this.timeStamp = timeStamp;
   }
+
   public AircraftState(JsonArray arr, long timeStamp) {
     jsonParser(arr, timeStamp);
   }
-  
+
   public String getIcao24() {
     return icao24;
   }
@@ -155,7 +194,7 @@ public class AircraftState {
   }
 
   public List<Integer> getSensors() {
-    return sensors == null? null : sensors;
+    return sensors == null ? null : sensors;
   }
 
   public AircraftState setSensors(List<Integer> sensors) {
@@ -173,7 +212,8 @@ public class AircraftState {
   }
 
   public String getSquawk() {
-    return squawk == null? null : squawk;  }
+    return squawk == null ? null : squawk;
+  }
 
   public AircraftState setSquawk(String squawk) {
     this.squawk = squawk;
@@ -216,8 +256,7 @@ public class AircraftState {
     return this;
   }
 
-   AircraftState jsonParser(JsonArray arr, long timestamp) {
-
+  AircraftState jsonParser(JsonArray arr, long timestamp) {
 
     if (!arr.get(0).isJsonNull()) {
       this.setIcao24(arr.get(0).getAsString());

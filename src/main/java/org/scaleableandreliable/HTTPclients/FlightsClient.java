@@ -34,10 +34,10 @@ public class FlightsClient {
   @Scheduled(every = "1h")
   public void sendArrivalRequests() {
     if (instance.getCoordinates().isEmpty()) {
-      instance.retrieveAirportsFromDB();
+      instance.retrieveCoordinatesFromDB();
     }
 
-    retrieveDepartureAirportInterval(instance.getCoordinates(), getStartTime(), getEndTime())
+    retrieveAllStates(instance.getCoordinates())
         .thenApplyAsync(this::convertAndSave)
         .thenRunAsync(() -> log.info("Finished inserting all current flights"))
         .exceptionally(
@@ -60,18 +60,10 @@ public class FlightsClient {
     return new CompletableFuture<>();
   }
 
-  // TODO: Finish me with real times
-  String getStartTime() {
-    return "1517227200";
-  }
 
-  // TODO: Finish me with real times
-  public String getEndTime() {
-    return "1517230800";
-  }
 
-  public CompletionStage<String> retrieveDepartureAirportInterval(
-      List<Coordinates> coordinatesList, String timeStart, String timeEnd) {
+  public CompletionStage<String> retrieveAllStates(
+      List<Coordinates> coordinatesList) {
     return this.httpClient
         .sendAsync(
             HttpRequest.newBuilder()

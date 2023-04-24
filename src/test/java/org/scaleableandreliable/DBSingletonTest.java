@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.scaleableandreliable.DBhandlers.DBSingleton;
+import org.scaleableandreliable.models.AircraftState;
 import org.scaleableandreliable.models.Arrivals;
 
 import java.sql.*;
@@ -21,12 +22,11 @@ import static org.mockito.Mockito.*;
 @TestProfile(MockDBProfile.class)
 class DBSingletonTest {
 
-  @InjectMocks
-  DBSingleton instance;
+  @InjectMocks DBSingleton instance;
 
   AgroalDataSource dsMock;
   Logger logMock;
-  
+
   static final String arrivalString = "Arrivals";
   static final String departureString = "Departures";
 
@@ -97,9 +97,26 @@ class DBSingletonTest {
 
     doReturn(stateMock).when(connMock).prepareStatement(anyString());
     doReturn(connMock).when(dsMock).getConnection();
-    
+
     instance.insertArrDep(arrival, "Arrivals");
 
+    verify(logMock, times(1)).info(anyString());
+    verify(stateMock, times(1)).execute();
+  }
+
+  @Test
+  void testInsertStates() throws SQLException {
+    var connMock = mock(Connection.class);
+    var stateMock = mock(PreparedStatement.class);
+  
+    doReturn(stateMock).when(connMock).prepareStatement(anyString());
+    doReturn(connMock).when(dsMock).getConnection();
+
+    var testState = new AircraftState(
+        "ABC", "ABC", "NOR", 123, 123, 12.3f, 12.3f, 12.3f, false, 321f, 123f, 123f, null, 123.0f,
+        "ABC", false, 4, 4, 123L);
+
+    instance.insertStates(testState);
     verify(logMock, times(1)).info(anyString());
     verify(stateMock, times(1)).execute();
   }
