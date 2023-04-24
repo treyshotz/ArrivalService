@@ -28,7 +28,7 @@ public class ArrivalClient {
   @Inject DBSingleton instance;
   @Inject Logger log;
 
-  @Scheduled(every = "1h")
+//  @Scheduled(every = "1h")
   public void sendArrivalRequests() {
     if (instance.getAirports().isEmpty()) {
       instance.retrieveAirportsFromDB();

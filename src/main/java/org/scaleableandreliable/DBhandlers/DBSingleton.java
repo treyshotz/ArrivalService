@@ -4,6 +4,7 @@ import io.agroal.api.AgroalDataSource;
 import io.quarkus.runtime.StartupEvent;
 import org.jboss.logging.Logger;
 import org.scaleableandreliable.models.Arrivals;
+import org.scaleableandreliable.models.Coordinates;
 import org.scaleableandreliable.models.GenericArDep;
 
 import javax.enterprise.event.Observes;
@@ -21,11 +22,14 @@ public class DBSingleton {
   @Inject Logger log;
   // Will use this as a cache
   List<String> airports;
+  List<Coordinates> coordinates;
+
   private AgroalDataSource ds;
   private EntityManager em;
 
   public DBSingleton() {
     this.airports = new ArrayList<>();
+    this.coordinates = new ArrayList<>();
   }
 
   public static DBSingleton getInstance() {
@@ -39,6 +43,7 @@ public class DBSingleton {
   void onApplicationStart(@Observes StartupEvent e) {
     log.info("Application started");
     retrieveAirportsFromDB();
+    retrieveCoordinatesFromDB();
   }
 
   public void retrieveAirportsFromDB() {
@@ -50,9 +55,29 @@ public class DBSingleton {
       var resultSet = statement.getResultSet();
       while (resultSet.next()) {
         airports.add(resultSet.getString("icao24"));
+        log.info("Retrieved airport icao24 from database");
       }
     } catch (SQLException e) {
       log.error("Got an error while retrieving airports from db", e);
+    }
+  }
+
+  public void retrieveCoordinatesFromDB() {
+    try (var session = ds.getConnection();
+        var statement = session.createStatement()) {
+      String sql = "SELECT * FROM Coordinates";
+      statement.execute(sql);
+      var resultSet = statement.getResultSet();
+      while (resultSet.next()) {
+        coordinates.add(
+            new Coordinates()
+                .setId(resultSet.getInt("id"))
+                .setDescription(resultSet.getString("description"))
+                .setPosition(resultSet.getDouble("position")));
+        log.info("Retrieved coordinates from database");
+      }
+    } catch (SQLException e) {
+      log.error("Got an error while retrieving coordinates from db", e);
     }
   }
 
@@ -148,6 +173,15 @@ public class DBSingleton {
 
   public DBSingleton setAirports(List<String> airports) {
     this.airports = airports;
+    return this;
+  }
+  
+  public List<Coordinates> getCoordinates() {
+    return coordinates;
+  }
+  
+  public DBSingleton setCoordinates(List<Coordinates> coordinates) {
+    this.coordinates = coordinates;
     return this;
   }
 }

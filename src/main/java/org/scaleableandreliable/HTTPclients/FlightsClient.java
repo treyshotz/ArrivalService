@@ -3,10 +3,12 @@ package org.scaleableandreliable.HTTPclients;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import io.quarkus.scheduler.Scheduled;
 import org.jboss.logging.Logger;
 import org.scaleableandreliable.DBhandlers.DBSingleton;
 import org.scaleableandreliable.models.Arrivals;
+import org.scaleableandreliable.models.Coordinates;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -14,13 +16,15 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @ApplicationScoped
-public class DepartureClient {
+public class FlightsClient {
+
   static final String departureString = "Departures";
   private final ExecutorService executorService = Executors.newFixedThreadPool(10);
   HttpClient httpClient =
@@ -28,28 +32,27 @@ public class DepartureClient {
   @Inject DBSingleton instance;
   @Inject Logger log;
 
-//  @Scheduled(every = "1h")
+  @Scheduled(every = "1h")
   public void sendArrivalRequests() {
-    if (instance.getAirports().isEmpty()) {
+    if (instance.getCoordinates().isEmpty()) {
       instance.retrieveAirportsFromDB();
     }
-    instance
-        .getAirports()
-        .forEach(
-            airportId ->
-                retrieveDepartureAirportInterval(airportId, getStartTime(), getEndTime())
-                    .thenApplyAsync(this::convertAndSave)
-                    .thenRunAsync(() -> log.info("Finished inserting departures for " + airportId))
-                    .exceptionally(
-                        e -> {
-                          log.error("Got an exception in the scheduled task", e);
-                          return null;
-                        }));
+
+    retrieveDepartureAirportInterval(instance.getCoordinates(), getStartTime(), getEndTime())
+        .thenApplyAsync(this::convertAndSave)
+        .thenRunAsync(() -> log.info("Finished inserting all current flights"))
+        .exceptionally(
+            e -> {
+              log.error("Got an exception in the scheduled task", e);
+              return null;
+            });
   }
 
   public CompletableFuture<Void> convertAndSave(String json) {
     var g = new Gson();
-    for (JsonElement jsonElement : g.fromJson(json, JsonArray.class)) {
+    var asJsonArray = g.fromJson(json, JsonObject.class).getAsJsonArray();
+    
+    for (JsonElement jsonElement : g.fromJson(json, JsonObject.class).getAsJsonArray()) {
       var arr = g.fromJson(jsonElement, Arrivals.class);
       instance.insertArrivals(arr, departureString);
     }
@@ -67,19 +70,37 @@ public class DepartureClient {
   }
 
   public CompletionStage<String> retrieveDepartureAirportInterval(
-      String airportNumber, String timeStart, String timeEnd) {
+      List<Coordinates> coordinatesList, String timeStart, String timeEnd) {
     return this.httpClient
         .sendAsync(
             HttpRequest.newBuilder()
                 .GET()
                 .uri(
                     URI.create(
-                        "https://opensky-network.org/api/flights/departure?airport="
-                            + airportNumber
-                            + "&begin="
-                            + timeStart
-                            + "&end="
-                            + timeEnd))
+                        "https://opensky-network.org/api/states/all?lamin="
+                            + coordinatesList.stream()
+                                .filter(a -> a.getDescription().equalsIgnoreCase("south"))
+                                .findFirst()
+                                .get()
+                                .getPosition()
+                            + "&lomin="
+                            + coordinatesList.stream()
+                                .filter(a -> a.getDescription().equalsIgnoreCase("west"))
+                                .findFirst()
+                                .get()
+                                .getPosition()
+                            + "&lamax="
+                            + coordinatesList.stream()
+                                .filter(a -> a.getDescription().equalsIgnoreCase("north"))
+                                .findFirst()
+                                .get()
+                                .getPosition()
+                            + "&lomax="
+                            + coordinatesList.stream()
+                                .filter(a -> a.getDescription().equalsIgnoreCase("east"))
+                                .findFirst()
+                                .get()
+                                .getPosition()))
                 .header("Accept", "application/json")
                 .build(),
             HttpResponse.BodyHandlers.ofString())
@@ -91,7 +112,7 @@ public class DepartureClient {
     return httpClient;
   }
 
-  public DepartureClient setHttpClient(HttpClient httpClient) {
+  public FlightsClient setHttpClient(HttpClient httpClient) {
     this.httpClient = httpClient;
     return this;
   }
@@ -100,7 +121,7 @@ public class DepartureClient {
     return instance;
   }
 
-  public DepartureClient setInstance(DBSingleton instance) {
+  public FlightsClient setInstance(DBSingleton instance) {
     this.instance = instance;
     return this;
   }
@@ -109,7 +130,7 @@ public class DepartureClient {
     return log;
   }
 
-  public DepartureClient setLog(Logger log) {
+  public FlightsClient setLog(Logger log) {
     this.log = log;
     return this;
   }
