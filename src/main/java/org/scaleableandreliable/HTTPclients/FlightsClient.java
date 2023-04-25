@@ -12,6 +12,7 @@ import org.scaleableandreliable.models.Coordinates;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -42,12 +43,22 @@ public class FlightsClient {
         .thenRunAsync(() -> log.info("Finished inserting all current flights"))
         .exceptionally(
             e -> {
-              log.error("Got an exception in the scheduled task", e);
+              log.error("Got an exception in the scheduled task when retrieving states; ", e);
               return null;
             });
   }
+  
+  public CompletableFuture<Void> convertAndSave(DepartureClient.MessageResponse messageResponse) {
+    if (messageResponse.statusCode.charAt(0) == '5'
+            || messageResponse.statusCode.charAt(0) == '4') {
+      throw new BadRequestException(
+              "Got statuscode "
+                      + messageResponse.statusCode
+                      + " when retrieving arrivals."
+                      + messageResponse.message);
+    }
+    var json = messageResponse.message;
 
-  public CompletableFuture<Void> convertAndSave(String json) {
     var g = new Gson();
 
     var jsonObject = g.fromJson(json, JsonObject.class);
@@ -59,11 +70,15 @@ public class FlightsClient {
     }
     return new CompletableFuture<>();
   }
-
-
-
-  public CompletionStage<String> retrieveAllStates(
-      List<Coordinates> coordinatesList) {
+  
+  
+  DepartureClient.MessageResponse handleHTTPResponse(HttpResponse<String> msg) {
+    return new DepartureClient.MessageResponse()
+            .setMessage(msg.body())
+            .setStatusCode(String.valueOf(msg.statusCode()));
+  }
+  
+  public CompletionStage<DepartureClient.MessageResponse> retrieveAllStates(List<Coordinates> coordinatesList) {
     return this.httpClient
         .sendAsync(
             HttpRequest.newBuilder()
@@ -97,7 +112,7 @@ public class FlightsClient {
                 .header("Accept", "application/json")
                 .build(),
             HttpResponse.BodyHandlers.ofString())
-        .thenApply(HttpResponse::body)
+        .thenApply(this::handleHTTPResponse)
         .toCompletableFuture();
   }
 

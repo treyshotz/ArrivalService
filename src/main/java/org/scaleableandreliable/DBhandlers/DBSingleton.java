@@ -21,21 +21,18 @@ import java.util.List;
 public class DBSingleton {
 
   static DBSingleton instance;
-  @Inject Logger log;
-  // Will use this as a cache
-  List<String> airports;
-  List<Coordinates> coordinates;
-
-  private AgroalDataSource ds;
-  private EntityManager em;
-
   static String sqlArrDep = "";
-
   static String sqlState =
       "INSERT INTO AircraftState (icao24, callsign, originCountry, timePosition, lastContact,"
           + "longitude, latitude, baroAltitude, onGround, velocity, trueTrack, verticalRate,"
           + "sensors, geoAltitude, squawk, spi, positionSource, category, timeStamp)"
           + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+  @Inject Logger log;
+  // Will use this as a cache
+  List<String> airports;
+  List<Coordinates> coordinates;
+  private AgroalDataSource ds;
+  private EntityManager em;
 
   public DBSingleton() {
     this.airports = new ArrayList<>();
@@ -60,7 +57,7 @@ public class DBSingleton {
 
     try (var session = ds.getConnection();
         var statement = session.createStatement()) {
-      String sql = "SELECT a.icao24 FROM Airports a";
+      String sql = "SELECT a.icao24 FROM Airports a WHERE a.active = true";
       statement.execute(sql);
       var resultSet = statement.getResultSet();
       while (resultSet.next()) {
@@ -112,10 +109,10 @@ public class DBSingleton {
 
     try (var session = ds.getConnection();
         var statement = session.prepareStatement(getArDepInsertSql(tableName))) {
-      
+
       prepareInsert(statement, ar);
       statement.execute();
-      
+
       log.info("Added " + tableName + " for airport" + ar.getIcao24());
     } catch (SQLException e) {
       log.error("Got an error while inserting " + tableName, e);
@@ -157,7 +154,7 @@ public class DBSingleton {
     statement.setFloat(10, aircraftState.getVelocity());
     statement.setFloat(11, aircraftState.getTrueTrack());
     statement.setFloat(12, aircraftState.getVerticalRate());
-    //TODO: Fixme
+    // TODO: Fixme
     statement.setString(13, null);
     statement.setFloat(14, aircraftState.getGeoAltitude());
     statement.setString(15, aircraftState.getSquawk());

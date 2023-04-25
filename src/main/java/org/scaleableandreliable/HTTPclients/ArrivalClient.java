@@ -3,12 +3,14 @@ package org.scaleableandreliable.HTTPclients;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import io.quarkus.scheduler.Scheduled;
 import org.jboss.logging.Logger;
 import org.scaleableandreliable.DBhandlers.DBSingleton;
 import org.scaleableandreliable.models.Arrivals;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -27,7 +29,7 @@ public class ArrivalClient {
   @Inject DBSingleton instance;
   @Inject Logger log;
 
-//  @Scheduled(every = "1h")
+  @Scheduled(every = "1m")
   public void sendArrivalRequests() {
     if (instance.getAirports().isEmpty()) {
       instance.retrieveAirportsFromDB();
@@ -41,12 +43,24 @@ public class ArrivalClient {
                     .thenRunAsync(() -> log.info("Finished inserting arrivals for " + airportId))
                     .exceptionally(
                         e -> {
-                          log.error("Got an exception in the scheduled task", e);
+                          log.error(
+                              "Got an exception in the scheduled task for airport; " + airportId,
+                              e);
                           return null;
                         }));
   }
+  
+  public CompletableFuture<Void> convertAndSave(DepartureClient.MessageResponse messageResponse) {
+    if (messageResponse.statusCode.charAt(0) == '5'
+            || messageResponse.statusCode.charAt(0) == '4') {
+      throw new BadRequestException(
+              "Got statuscode "
+                      + messageResponse.statusCode
+                      + " when retrieving arrivals."
+                      + messageResponse.message);
+    }
+    var json = messageResponse.message;
 
-  public CompletableFuture<Void> convertAndSave(String json) {
     var g = new Gson();
     for (JsonElement jsonElement : g.fromJson(json, JsonArray.class)) {
       var arr = g.fromJson(jsonElement, Arrivals.class);
@@ -64,8 +78,14 @@ public class ArrivalClient {
   public String getEndTime() {
     return "1517230800";
   }
-
-  public CompletionStage<String> retrieveArrivalsAirportInterval(
+  
+  DepartureClient.MessageResponse handleHTTPResponse(HttpResponse<String> msg) {
+    return new DepartureClient.MessageResponse()
+            .setMessage(msg.body())
+            .setStatusCode(String.valueOf(msg.statusCode()));
+  }
+  
+  public CompletionStage<DepartureClient.MessageResponse> retrieveArrivalsAirportInterval(
       String airportNumber, String timeStart, String timeEnd) {
     return this.httpClient
         .sendAsync(
@@ -82,7 +102,7 @@ public class ArrivalClient {
                 .header("Accept", "application/json")
                 .build(),
             HttpResponse.BodyHandlers.ofString())
-        .thenApply(HttpResponse::body)
+        .thenApply(this::handleHTTPResponse)
         .toCompletableFuture();
   }
 

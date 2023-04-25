@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.scaleableandreliable.DBhandlers.DBSingleton;
 import org.scaleableandreliable.HTTPclients.ArrivalClient;
+import org.scaleableandreliable.HTTPclients.DepartureClient;
 import org.scaleableandreliable.models.Arrivals;
 
 import java.net.http.HttpClient;
@@ -45,10 +46,13 @@ class ArrivalClientTest {
   @Test
   void testConvertAndSaveMultiple() {
     String json =
-        " [{\"icao24\":\"0101be\",\"firstSeen\":1517220729,\"estDepartureAirport\":null,\"lastSeen\":1517230737,\"estArrivalAirport\":\"EDDF\",\"callsign\":\"MSR785  \",\"estDepartureAirportHorizDistance\":null,\"estDepartureAirportVertDistance\":null,\"estArrivalAirportHorizDistance\":1593,\"estArrivalAirportVertDistance\":95,\"departureAirportCandidatesCount\":0,\"arrivalAirportCandidatesCount\":2},{\"icao24\":\"3c6675\",\"firstSeen\":1517227831,\"estDepartureAirport\":\"EDDT\",\"lastSeen\":1517230709,\"estArrivalAirport\":\"EDDF\",\"callsign\":\"DLH187  \",\"estDepartureAirportHorizDistance\":191,\"estDepartureAirportVertDistance\":54,\"estArrivalAirportHorizDistance\":3000,\"estArrivalAirportVertDistance\":103,\"departureAirportCandidatesCount\":1,\"arrivalAirportCandidatesCount\":3}]";
+            " [{\"icao24\":\"0101be\",\"firstSeen\":1517220729,\"estDepartureAirport\":null,\"lastSeen\":1517230737,\"estArrivalAirport\":\"EDDF\",\"callsign\":\"MSR785  \",\"estDepartureAirportHorizDistance\":null,\"estDepartureAirportVertDistance\":null,\"estArrivalAirportHorizDistance\":1593,\"estArrivalAirportVertDistance\":95,\"departureAirportCandidatesCount\":0,\"arrivalAirportCandidatesCount\":2},{\"icao24\":\"3c6675\",\"firstSeen\":1517227831,\"estDepartureAirport\":\"EDDT\",\"lastSeen\":1517230709,\"estArrivalAirport\":\"EDDF\",\"callsign\":\"DLH187  \",\"estDepartureAirportHorizDistance\":191,\"estDepartureAirportVertDistance\":54,\"estArrivalAirportHorizDistance\":3000,\"estArrivalAirportVertDistance\":103,\"departureAirportCandidatesCount\":1,\"arrivalAirportCandidatesCount\":3}]";
+    String statusCode = "200";
+  
     doNothing().when(instance).insertArrDep(any(Arrivals.class), anyString());
-
-    client.convertAndSave(json);
+  
+    client.convertAndSave(
+            new DepartureClient.MessageResponse().setMessage(json).setStatusCode(statusCode));
 
     verify(instance, times(2)).insertArrDep(any(Arrivals.class), anyString());
   }
@@ -56,10 +60,14 @@ class ArrivalClientTest {
   @Test
   void testConvertAndSaveSingle() {
     String json =
-        " [{\"icao24\":\"0101be\",\"firstSeen\":1517220729,\"estDepartureAirport\":null,\"lastSeen\":1517230737,\"estArrivalAirport\":\"EDDF\",\"callsign\":\"MSR785  \",\"estDepartureAirportHorizDistance\":null,\"estDepartureAirportVertDistance\":null,\"estArrivalAirportHorizDistance\":1593,\"estArrivalAirportVertDistance\":95,\"departureAirportCandidatesCount\":0,\"arrivalAirportCandidatesCount\":2}]";
+            " [{\"icao24\":\"0101be\",\"firstSeen\":1517220729,\"estDepartureAirport\":null,\"lastSeen\":1517230737,\"estArrivalAirport\":\"EDDF\",\"callsign\":\"MSR785  \",\"estDepartureAirportHorizDistance\":null,\"estDepartureAirportVertDistance\":null,\"estArrivalAirportHorizDistance\":1593,\"estArrivalAirportVertDistance\":95,\"departureAirportCandidatesCount\":0,\"arrivalAirportCandidatesCount\":2}]";
+  
+    String statusCode = "200";
+  
     doNothing().when(instance).insertArrDep(any(Arrivals.class), anyString());
-
-    client.convertAndSave(json);
+  
+    client.convertAndSave(
+            new DepartureClient.MessageResponse().setMessage(json).setStatusCode(statusCode));
 
     verify(instance, times(1)).insertArrDep(any(Arrivals.class), anyString());
   }

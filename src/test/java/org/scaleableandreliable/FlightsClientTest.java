@@ -8,8 +8,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.scaleableandreliable.DBhandlers.DBSingleton;
+import org.scaleableandreliable.HTTPclients.DepartureClient;
 import org.scaleableandreliable.HTTPclients.FlightsClient;
 import org.scaleableandreliable.models.AircraftState;
+import org.scaleableandreliable.models.Arrivals;
 import org.scaleableandreliable.models.Coordinates;
 
 import java.net.http.HttpClient;
@@ -42,10 +44,12 @@ class FlightsClientTest {
   void testConvertAndSaveMultiple() {
     String json =
         "{\"time\":1682346982,\"states\":[[\"4b1817\",\"SWR200B \",\"Switzerland\",1682346981,1682346981,10.68,42.8389,11582.4,false,209.61,338.85,0,null,11635.74,\"1000\",false,0],[\"4b1812\",\"SWR8CA  \",\"Switzerland\",1682346981,1682346982,9.9064,45.0634,11597.64,false,215.2,327.3,0,null,11574.78,\"1000\",false,0]]}";
-
-    doNothing().when(instance).insertStates(any(AircraftState.class));
-
-    client.convertAndSave(json);
+    String statusCode = "200";
+  
+    doNothing().when(instance).insertArrDep(any(Arrivals.class), anyString());
+  
+    client.convertAndSave(
+            new DepartureClient.MessageResponse().setMessage(json).setStatusCode(statusCode));;
 
     verify(instance, times(2)).insertStates(any(AircraftState.class));
   }
@@ -55,10 +59,13 @@ class FlightsClientTest {
 
     String json =
         "{\"time\":1682346982,\"states\":[[\"4b1817\",\"SWR200B \",\"Switzerland\",1682346981,1682346981,10.68,42.8389,11582.4,false,209.61,338.85,0,null,11635.74,\"1000\",false,0]]}";
+    String statusCode = "200";
+  
+    doNothing().when(instance).insertArrDep(any(Arrivals.class), anyString());
+  
+    client.convertAndSave(
+            new DepartureClient.MessageResponse().setMessage(json).setStatusCode(statusCode));
 
-    doNothing().when(instance).insertStates(any(AircraftState.class));
-
-    client.convertAndSave(json);
 
     verify(instance, times(1)).insertStates(any(AircraftState.class));
   }
