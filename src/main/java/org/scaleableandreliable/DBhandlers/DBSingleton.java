@@ -3,10 +3,7 @@ package org.scaleableandreliable.DBhandlers;
 import io.agroal.api.AgroalDataSource;
 import io.quarkus.runtime.StartupEvent;
 import org.jboss.logging.Logger;
-import org.scaleableandreliable.models.AircraftState;
-import org.scaleableandreliable.models.Arrivals;
-import org.scaleableandreliable.models.Coordinates;
-import org.scaleableandreliable.models.GenericArDep;
+import org.scaleableandreliable.models.*;
 
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
@@ -31,12 +28,14 @@ public class DBSingleton {
   // Will use this as a cache
   List<String> airports;
   List<Coordinates> coordinates;
+  List<HistoryCollect> collects;
   private AgroalDataSource ds;
   private EntityManager em;
 
   public DBSingleton() {
     this.airports = new ArrayList<>();
     this.coordinates = new ArrayList<>();
+    this.collects = new ArrayList<>();
   }
 
   public static DBSingleton getInstance() {
@@ -51,13 +50,35 @@ public class DBSingleton {
     log.info("Application started");
     retrieveAirportsFromDB();
     retrieveCoordinatesFromDB();
+    retrieveHistoryCollectorFromDB();
+  }
+
+  public void retrieveHistoryCollectorFromDB() {
+    try (var session = ds.getConnection();
+        var statement = session.createStatement()) {
+      String sql =
+          "SELECT h.type, h.from_date, h.to_date, h.active FROM HistoryCollect h WHERE h.active = 1";
+      statement.execute(sql);
+      var resultSet = statement.getResultSet();
+      while (resultSet.next()) {
+        collects.add(
+            new HistoryCollect(
+                resultSet.getString("type"),
+                resultSet.getLong("from_date"),
+                resultSet.getLong("to_date"),
+                resultSet.getBoolean("active")));
+        log.info("Retrieved history collect  from database");
+      }
+    } catch (SQLException e) {
+      log.error("Got an error while retrieving history collects from db", e);
+    }
   }
 
   public void retrieveAirportsFromDB() {
 
     try (var session = ds.getConnection();
         var statement = session.createStatement()) {
-      String sql = "SELECT a.icao24 FROM Airports a WHERE a.active = true";
+      String sql = "SELECT a.icao24 FROM Airports a WHERE a.active = 1";
       statement.execute(sql);
       var resultSet = statement.getResultSet();
       while (resultSet.next()) {
@@ -207,6 +228,15 @@ public class DBSingleton {
 
   public DBSingleton setCoordinates(List<Coordinates> coordinates) {
     this.coordinates = coordinates;
+    return this;
+  }
+
+  public List<HistoryCollect> getCollects() {
+    return collects;
+  }
+
+  public DBSingleton setCollects(List<HistoryCollect> collects) {
+    this.collects = collects;
     return this;
   }
 }

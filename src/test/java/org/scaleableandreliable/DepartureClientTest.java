@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.scaleableandreliable.DBhandlers.DBSingleton;
+import org.scaleableandreliable.HTTPclients.ClientHelper.MessageResponse;
 import org.scaleableandreliable.HTTPclients.DepartureClient;
 import org.scaleableandreliable.models.Arrivals;
 
@@ -51,7 +52,7 @@ class DepartureClientTest {
     doNothing().when(instance).insertArrDep(any(Arrivals.class), anyString());
 
     client.convertAndSave(
-        new DepartureClient.MessageResponse().setMessage(json).setStatusCode(statusCode));
+        new MessageResponse().setMessage(json).setStatusCode(statusCode));
 
     verify(instance, times(2)).insertArrDep(any(Arrivals.class), anyString());
   }
@@ -66,7 +67,7 @@ class DepartureClientTest {
     doNothing().when(instance).insertArrDep(any(Arrivals.class), anyString());
 
     client.convertAndSave(
-        new DepartureClient.MessageResponse().setMessage(json).setStatusCode(statusCode));
+        new MessageResponse().setMessage(json).setStatusCode(statusCode));
 
     verify(instance, times(1)).insertArrDep(any(Arrivals.class), anyString());
   }

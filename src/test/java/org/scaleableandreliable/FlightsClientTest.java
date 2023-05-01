@@ -13,6 +13,8 @@ import org.scaleableandreliable.HTTPclients.FlightsClient;
 import org.scaleableandreliable.models.AircraftState;
 import org.scaleableandreliable.models.Arrivals;
 import org.scaleableandreliable.models.Coordinates;
+import org.scaleableandreliable.HTTPclients.ClientHelper.MessageResponse;
+
 
 import java.net.http.HttpClient;
 import java.util.List;
@@ -49,7 +51,7 @@ class FlightsClientTest {
     doNothing().when(instance).insertArrDep(any(Arrivals.class), anyString());
   
     client.convertAndSave(
-            new DepartureClient.MessageResponse().setMessage(json).setStatusCode(statusCode));;
+            new MessageResponse().setMessage(json).setStatusCode(statusCode));;
 
     verify(instance, times(2)).insertStates(any(AircraftState.class));
   }
@@ -64,7 +66,7 @@ class FlightsClientTest {
     doNothing().when(instance).insertArrDep(any(Arrivals.class), anyString());
   
     client.convertAndSave(
-            new DepartureClient.MessageResponse().setMessage(json).setStatusCode(statusCode));
+            new MessageResponse().setMessage(json).setStatusCode(statusCode));
 
 
     verify(instance, times(1)).insertStates(any(AircraftState.class));

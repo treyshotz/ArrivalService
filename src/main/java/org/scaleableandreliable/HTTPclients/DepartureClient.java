@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import io.quarkus.scheduler.Scheduled;
 import org.jboss.logging.Logger;
 import org.scaleableandreliable.DBhandlers.DBSingleton;
+import org.scaleableandreliable.HTTPclients.ClientHelper.MessageResponse;
 import org.scaleableandreliable.models.Arrivals;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -137,28 +138,5 @@ public class DepartureClient {
   public DepartureClient setLog(Logger log) {
     this.log = log;
     return this;
-  }
-
-  public static class MessageResponse {
-    String message;
-    String statusCode;
-
-    public String getMessage() {
-      return message;
-    }
-
-    public MessageResponse setMessage(String message) {
-      this.message = message;
-      return this;
-    }
-
-    public String getStatusCode() {
-      return statusCode;
-    }
-
-    public MessageResponse setStatusCode(String statusCode) {
-      this.statusCode = statusCode;
-      return this;
-    }
   }
 }

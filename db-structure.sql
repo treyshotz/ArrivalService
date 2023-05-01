@@ -172,6 +172,20 @@ VALUES ('LIAA', 'Terni Alvaro Leonardi Airport', 'Terni', true),
        ('LIRV', 'Viterbo Air Force Base / Rome Viterbo Airport', 'Viterbo', true),
        ('LIRZ', 'Perugia San Francesco d\'Assisi – Umbria International Airport', 'Perugia', true);
 
+CREATE TABLE HistoryCollect
+(
+    id        INT,
+    type      VARCHAR(255),
+    from_date BIGINT,
+    to_date   BIGINT,
+    active    BOOLEAN
+
+);
+
+INSERT INTO HistoryCollect(id, type, from_date, to_date, active)
+VALUES (0, 'arrival', 1651410093, 1682946093, true);
+
+
 
 CREATE TABLE AircraftState
 (

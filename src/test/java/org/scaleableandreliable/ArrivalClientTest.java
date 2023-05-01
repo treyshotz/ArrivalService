@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.scaleableandreliable.DBhandlers.DBSingleton;
 import org.scaleableandreliable.HTTPclients.ArrivalClient;
+import org.scaleableandreliable.HTTPclients.ClientHelper.MessageResponse;
 import org.scaleableandreliable.HTTPclients.DepartureClient;
 import org.scaleableandreliable.models.Arrivals;
 
@@ -52,7 +53,7 @@ class ArrivalClientTest {
     doNothing().when(instance).insertArrDep(any(Arrivals.class), anyString());
   
     client.convertAndSave(
-            new DepartureClient.MessageResponse().setMessage(json).setStatusCode(statusCode));
+            new MessageResponse().setMessage(json).setStatusCode(statusCode));
 
     verify(instance, times(2)).insertArrDep(any(Arrivals.class), anyString());
   }
@@ -67,7 +68,7 @@ class ArrivalClientTest {
     doNothing().when(instance).insertArrDep(any(Arrivals.class), anyString());
   
     client.convertAndSave(
-            new DepartureClient.MessageResponse().setMessage(json).setStatusCode(statusCode));
+            new MessageResponse().setMessage(json).setStatusCode(statusCode));
 
     verify(instance, times(1)).insertArrDep(any(Arrivals.class), anyString());
   }
@@ -90,7 +91,7 @@ class ArrivalClientTest {
         .sendAsync(any(), any());
     client.setHttpClient(httpMock);
 
-    client.retrieveArrivalsAirportInterval("", "", "");
+    client.asyncRetrieveArrivalsAirportInterval("", "", "");
 
     verify(httpMock, times(1)).sendAsync(any(), any());
   }
@@ -103,8 +104,8 @@ class ArrivalClientTest {
         .sendAsync(any(), any());
     client.setHttpClient(httpClient);
 
-    client.retrieveArrivalsAirportInterval("", "", "");
-    client.retrieveArrivalsAirportInterval("", "", "");
+    client.asyncRetrieveArrivalsAirportInterval("", "", "");
+    client.asyncRetrieveArrivalsAirportInterval("", "", "");
 
     verify(httpClient, times(2)).sendAsync(any(), any());
   }

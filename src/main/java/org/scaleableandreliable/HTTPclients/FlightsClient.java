@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import io.quarkus.scheduler.Scheduled;
 import org.jboss.logging.Logger;
 import org.scaleableandreliable.DBhandlers.DBSingleton;
+import org.scaleableandreliable.HTTPclients.ClientHelper.MessageResponse;
 import org.scaleableandreliable.models.AircraftState;
 import org.scaleableandreliable.models.Coordinates;
 
@@ -47,15 +48,15 @@ public class FlightsClient {
               return null;
             });
   }
-  
-  public CompletableFuture<Void> convertAndSave(DepartureClient.MessageResponse messageResponse) {
+
+  public CompletableFuture<Void> convertAndSave(MessageResponse messageResponse) {
     if (messageResponse.statusCode.charAt(0) == '5'
-            || messageResponse.statusCode.charAt(0) == '4') {
+        || messageResponse.statusCode.charAt(0) == '4') {
       throw new BadRequestException(
-              "Got statuscode "
-                      + messageResponse.statusCode
-                      + " when retrieving arrivals."
-                      + messageResponse.message);
+          "Got statuscode "
+              + messageResponse.statusCode
+              + " when retrieving arrivals."
+              + messageResponse.message);
     }
     var json = messageResponse.message;
 
@@ -70,15 +71,14 @@ public class FlightsClient {
     }
     return new CompletableFuture<>();
   }
-  
-  
-  DepartureClient.MessageResponse handleHTTPResponse(HttpResponse<String> msg) {
-    return new DepartureClient.MessageResponse()
-            .setMessage(msg.body())
-            .setStatusCode(String.valueOf(msg.statusCode()));
+
+  MessageResponse handleHTTPResponse(HttpResponse<String> msg) {
+    return new MessageResponse()
+        .setMessage(msg.body())
+        .setStatusCode(String.valueOf(msg.statusCode()));
   }
-  
-  public CompletionStage<DepartureClient.MessageResponse> retrieveAllStates(List<Coordinates> coordinatesList) {
+
+  public CompletionStage<MessageResponse> retrieveAllStates(List<Coordinates> coordinatesList) {
     return this.httpClient
         .sendAsync(
             HttpRequest.newBuilder()

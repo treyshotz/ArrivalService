@@ -12,4 +12,5 @@ curl -s "https://opensky-network.org/api/states/all?lamin=35.4562&lomin=6.6166&l
 curl -s "https://opensky-network.org/api/states/all?lamin=45.8389&lomin=5.9962&lamax=47.8229&lomax=10.5226" | python -m json.tool
 
 
-curl -s "https://opensky-network.org/api/flights/arrival?airport=LIRF&begin=1517227200&end=1517230800" | python -m json.tool
+curl -s "https://opensky-network.org/api/flights/departure?airport=EDDF&begin=1682780493&end=1682859693" | python -m json.tool
+curl -s "https://opensky-network.org/api/flights/arrival?airport=EDDF&begin=1517227200&end=1517230800" | python -m json.tool
