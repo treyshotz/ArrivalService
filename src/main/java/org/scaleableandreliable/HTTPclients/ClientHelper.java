@@ -8,6 +8,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.CompletionStage;
 
 public class ClientHelper {
@@ -71,7 +73,18 @@ public class ClientHelper {
         .thenApply(ClientHelper::handleHTTPResponse)
         .toCompletableFuture();
   }
-
+  
+  // TODO: Finish me with real times
+  public static String getStartTime() {
+    return String.valueOf(Instant.now().minus(30, ChronoUnit.MINUTES).getEpochSecond());
+  }
+  
+  // TODO: Finish me with real times
+  public static String getEndTime() {
+    return String.valueOf(Instant.now().getEpochSecond());
+  }
+  
+  
   public static class MessageResponse {
     String message;
     String statusCode;

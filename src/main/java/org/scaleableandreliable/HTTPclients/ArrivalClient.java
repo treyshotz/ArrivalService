@@ -7,7 +7,6 @@ import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
 import org.jboss.logging.Logger;
 import org.scaleableandreliable.DBhandlers.DBSingleton;
-import org.scaleableandreliable.HTTPclients.ClientHelper.MessageResponse;
 import org.scaleableandreliable.models.Arrivals;
 import org.scaleableandreliable.models.HistoryCollect;
 
@@ -19,13 +18,11 @@ import java.net.http.HttpClient;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static org.scaleableandreliable.HTTPclients.ClientHelper.asyncRetrieveDepartureAirportInterval;
-import static org.scaleableandreliable.HTTPclients.ClientHelper.retrieveArrivalsAirportInterval;
+import static org.scaleableandreliable.HTTPclients.ClientHelper.*;
 
 @ApplicationScoped
 public class ArrivalClient {
@@ -75,9 +72,10 @@ public class ArrivalClient {
         .getAirports()
         .forEach(
             airportId -> {
-              var ref = new Object() {
-                MessageResponse resp = null;
-              };
+              var ref =
+                  new Object() {
+                    MessageResponse resp = null;
+                  };
               try {
                 ref.resp =
                     retrieveArrivalsAirportInterval(
@@ -94,26 +92,30 @@ public class ArrivalClient {
             });
   }
 
-  @Scheduled(every = "1m")
+  @Scheduled(every = "30m")
   public void sendArrivalRequests() {
     if (instance.getAirports().isEmpty()) {
       instance.retrieveAirportsFromDB();
     }
+
     instance
         .getAirports()
         .forEach(
-            airportId ->
-                asyncRetrieveDepartureAirportInterval(
-                        airportId, getStartTime(), getEndTime(), "arrival", this.httpClient)
-                    .thenApplyAsync(this::convertAndSave)
-                    .thenRunAsync(() -> log.info("Finished inserting arrivals for " + airportId))
-                    .exceptionally(
-                        e -> {
-                          log.error(
-                              "Got an exception in the scheduled task for airport; " + airportId,
-                              e);
-                          return null;
-                        }));
+            airportId -> {
+              var ref =
+                  new Object() {
+                    MessageResponse resp = null;
+                  };
+              try {
+                ref.resp =
+                    retrieveArrivalsAirportInterval(
+                        airportId, getStartTime(), getEndTime(), "arrival", this.httpClient);
+              } catch (InterruptedException | IOException e) {
+                log.error("Got an exception in the scheduled task for airport; " + airportId, e);
+              }
+              this.executorService.execute(() -> convertAndSave(ref.resp));
+              log.info("Finished inserting scheduled arrivals for " + airportId);
+            });
   }
 
   public CompletableFuture<Void> convertAndSave(MessageResponse messageResponse) {
@@ -126,7 +128,7 @@ public class ArrivalClient {
     for (JsonElement jsonElement : g.fromJson(json, JsonArray.class)) {
       list.add(g.fromJson(jsonElement, Arrivals.class));
     }
-      instance.insertBatchArrDep(list, arrivalString);
+    instance.insertBatchArrDep(list, arrivalString);
     return new CompletableFuture<>();
   }
 
@@ -141,16 +143,6 @@ public class ArrivalClient {
       return new CompletableFuture<>();
     }
     return null;
-  }
-
-  // TODO: Finish me with real times
-  String getStartTime() {
-    return "1517227200";
-  }
-
-  // TODO: Finish me with real times
-  public String getEndTime() {
-    return "1517230800";
   }
 
   public HttpClient getHttpClient() {

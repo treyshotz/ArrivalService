@@ -24,7 +24,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static org.scaleableandreliable.HTTPclients.ClientHelper.asyncRetrieveDepartureAirportInterval;
 import static org.scaleableandreliable.HTTPclients.ClientHelper.retrieveArrivalsAirportInterval;
 
 @ApplicationScoped
@@ -39,7 +38,7 @@ public class DepartureClient {
   @Inject Logger log;
 
   void onApplicationStart(@Observes StartupEvent e) {
-        collectHistoricalData();
+    collectHistoricalData();
   }
 
   public void collectHistoricalData() {
@@ -96,7 +95,7 @@ public class DepartureClient {
             });
   }
 
-  @Scheduled(every = "1m")
+  @Scheduled(every = "30m")
   public void sendArrivalRequests() {
     if (instance.getAirports().isEmpty()) {
       instance.retrieveAirportsFromDB();
@@ -104,18 +103,21 @@ public class DepartureClient {
     instance
         .getAirports()
         .forEach(
-            airportId ->
-                asyncRetrieveDepartureAirportInterval(
-                        airportId, getStartTime(), getEndTime(), "departure", this.httpClient)
-                    .thenApply(this::convertAndSave)
-                    .thenRunAsync(() -> log.info("Finished inserting departures for " + airportId))
-                    .exceptionally(
-                        e -> {
-                          log.error(
-                              "Got an exception in the scheduled task for airport; " + airportId,
-                              e);
-                          return null;
-                        }));
+            airportId -> {
+              var ref =
+                  new Object() {
+                    MessageResponse resp = null;
+                  };
+              try {
+                ref.resp =
+                    retrieveArrivalsAirportInterval(
+                        airportId, getStartTime(), getEndTime(), "departure", this.httpClient);
+              } catch (InterruptedException | IOException e) {
+                log.error("Got an exception in the scheduled task for airport; " + airportId, e);
+              }
+              this.executorService.execute(() -> convertAndSave(ref.resp));
+              log.info("Finished inserting scheduled departures for " + airportId);
+            });
   }
 
   public CompletableFuture<Void> convertAndSave(MessageResponse messageResponse) {
