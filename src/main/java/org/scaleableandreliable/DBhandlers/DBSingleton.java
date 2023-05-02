@@ -3,7 +3,10 @@ package org.scaleableandreliable.DBhandlers;
 import io.agroal.api.AgroalDataSource;
 import io.quarkus.runtime.StartupEvent;
 import org.jboss.logging.Logger;
-import org.scaleableandreliable.models.*;
+import org.scaleableandreliable.models.AircraftState;
+import org.scaleableandreliable.models.Coordinates;
+import org.scaleableandreliable.models.GenericArDep;
+import org.scaleableandreliable.models.HistoryCollect;
 
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
@@ -74,6 +77,18 @@ public class DBSingleton {
     }
   }
 
+  public void setHistoryCollectToFalse(HistoryCollect hist) {
+    try (var session = ds.getConnection();
+        var statement = session.createStatement()) {
+      String sql = "UPDATE HistoryCollect SET active = 0 WHERE id = " + hist.getId();
+      statement.execute(sql);
+      log.info("Set history collect for " + hist.getType() + " to false");
+
+    } catch (SQLException e) {
+      log.error("Got an error while setting historycollect for " + hist.getType() + " to false", e);
+    }
+  }
+
   public void retrieveAirportsFromDB() {
 
     try (var session = ds.getConnection();
@@ -122,7 +137,33 @@ public class DBSingleton {
     }
   }
 
-  public void insertArrDep(Arrivals ar, String tableName) {
+  public void insertBatchArrDep(List<? extends GenericArDep> ar, String tableName) {
+
+    try (var session = ds.getConnection();
+        var statement = session.prepareStatement(getArDepInsertSql(tableName))) {
+
+      ar.forEach(
+          genericArDep -> {
+            if (genericArDep.getId() == null) {
+              genericArDep.generateId();
+            }
+            try {
+              prepareInsert(statement, genericArDep);
+              statement.addBatch();
+            } catch (SQLException e) {
+              log.error(e);
+            }
+          });
+
+      statement.executeBatch();
+
+      log.info("Added " + ar.size() + " " + tableName + " for airport" + ar.get(0).getIcao24());
+    } catch (SQLException e) {
+      log.error("Got an error while inserting " + tableName, e);
+    }
+  }
+
+  public void insertArrDep(GenericArDep ar, String tableName) {
 
     if (ar.getId() == null) {
       ar.generateId();

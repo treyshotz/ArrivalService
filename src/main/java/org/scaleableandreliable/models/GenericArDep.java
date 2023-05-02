@@ -1,5 +1,7 @@
 package org.scaleableandreliable.models;
 
+import java.util.Random;
+
 public abstract class GenericArDep {
 
   private transient String icao24;
@@ -24,6 +26,7 @@ public abstract class GenericArDep {
     this.icao24 = icao24;
     return this;
   }
+  
 
   public int getFirstSeen() {
     return firstSeen;
@@ -132,4 +135,8 @@ public abstract class GenericArDep {
     this.id = id;
     return this;
   }
+  public void generateId() {
+    this.id = new Random().nextLong();
+  }
+  
 }

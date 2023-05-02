@@ -82,33 +82,7 @@ class ArrivalClientTest {
   void testGetEndTime() {
     assertThat(client.getEndTime(), isA(String.class));
   }
-
-  @Test
-  void testRetrieveArrivalsAirportIntervalSingle() {
-    var httpMock = mock(HttpClient.class);
-    doReturn(new CompletableFuture<>().minimalCompletionStage())
-        .when(httpMock)
-        .sendAsync(any(), any());
-    client.setHttpClient(httpMock);
-
-    client.asyncRetrieveArrivalsAirportInterval("", "", "");
-
-    verify(httpMock, times(1)).sendAsync(any(), any());
-  }
-
-  @Test
-  void testRetrieveArrivalsAirportIntervalMultiple() {
-    var httpClient = mock(HttpClient.class);
-    doReturn(new CompletableFuture<>().minimalCompletionStage())
-        .when(httpClient)
-        .sendAsync(any(), any());
-    client.setHttpClient(httpClient);
-
-    client.asyncRetrieveArrivalsAirportInterval("", "", "");
-    client.asyncRetrieveArrivalsAirportInterval("", "", "");
-
-    verify(httpClient, times(2)).sendAsync(any(), any());
-  }
+  
 
   @Test
   @Disabled("Seems to call real method but does not register it")

@@ -167,6 +167,7 @@ public class Arrivals extends GenericArDep {
     return this;
   }
 
+  @Override
   public void generateId() {
     this.id = new Random().nextLong();
   }

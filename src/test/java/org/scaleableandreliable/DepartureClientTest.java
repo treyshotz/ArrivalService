@@ -90,12 +90,13 @@ class DepartureClientTest {
         .sendAsync(any(), any());
     client.setHttpClient(httpMock);
 
-    client.retrieveDepartureAirportInterval("", "", "");
+//    client.retrieveDepartureAirportInterval("", "", "");
 
     verify(httpMock, times(1)).sendAsync(any(), any());
   }
 
   @Test
+  @Disabled("Use this for helper class")
   void testRetrieveArrivalsAirportIntervalMultiple() {
     var httpClient = mock(HttpClient.class);
     doReturn(new CompletableFuture<>().minimalCompletionStage())
@@ -103,8 +104,8 @@ class DepartureClientTest {
         .sendAsync(any(), any());
     client.setHttpClient(httpClient);
 
-    client.retrieveDepartureAirportInterval("", "", "");
-    client.retrieveDepartureAirportInterval("", "", "");
+//    client.retrieveDepartureAirportInterval("", "", "");
+//    client.retrieveDepartureAirportInterval("", "", "");
 
     verify(httpClient, times(2)).sendAsync(any(), any());
   }

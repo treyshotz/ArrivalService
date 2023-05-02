@@ -13,7 +13,6 @@ import org.scaleableandreliable.models.Coordinates;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.BadRequestException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -50,16 +49,9 @@ public class FlightsClient {
   }
 
   public CompletableFuture<Void> convertAndSave(MessageResponse messageResponse) {
-    if (messageResponse.statusCode.charAt(0) == '5'
-        || messageResponse.statusCode.charAt(0) == '4') {
-      throw new BadRequestException(
-          "Got statuscode "
-              + messageResponse.statusCode
-              + " when retrieving arrivals."
-              + messageResponse.message);
-    }
+    CompletableFuture<Void> x = checkError(messageResponse);
+    if (x != null) return x;
     var json = messageResponse.message;
-
     var g = new Gson();
 
     var jsonObject = g.fromJson(json, JsonObject.class);
@@ -70,6 +62,19 @@ public class FlightsClient {
       instance.insertStates(new AircraftState(arr, jsonObject.get("time").getAsLong()));
     }
     return new CompletableFuture<>();
+  }
+
+  private CompletableFuture<Void> checkError(MessageResponse messageResponse) {
+    if (messageResponse.statusCode.charAt(0) == '5'
+        || messageResponse.statusCode.charAt(0) == '4') {
+      log.error(
+          "Got statuscode "
+              + messageResponse.statusCode
+              + " when retrieving arrivals."
+              + messageResponse.message);
+      return new CompletableFuture<>();
+    }
+    return null;
   }
 
   MessageResponse handleHTTPResponse(HttpResponse<String> msg) {
