@@ -23,6 +23,7 @@ import static org.hamcrest.CoreMatchers.isA;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.scaleableandreliable.HTTPclients.ClientHelper.getEndTime;
 
 @QuarkusTest
 @TestProfile(MockDBProfile.class)
@@ -75,12 +76,12 @@ class ArrivalClientTest {
 
   @Test
   void testGetStartTime() {
-    assertThat(client.getEndTime(), isA(String.class));
+    assertThat(getEndTime(), isA(String.class));
   }
 
   @Test
   void testGetEndTime() {
-    assertThat(client.getEndTime(), isA(String.class));
+    assertThat(getEndTime(), isA(String.class));
   }
   
 

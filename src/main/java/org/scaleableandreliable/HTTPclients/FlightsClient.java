@@ -13,13 +13,13 @@ import org.scaleableandreliable.models.Coordinates;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -32,20 +32,21 @@ public class FlightsClient {
   @Inject DBSingleton instance;
   @Inject Logger log;
 
-  @Scheduled(every = "1h")
+  @Scheduled(every = "20m")
   public void sendArrivalRequests() {
     if (instance.getCoordinates().isEmpty()) {
       instance.retrieveCoordinatesFromDB();
     }
 
-    retrieveAllStates(instance.getCoordinates())
-        .thenApplyAsync(this::convertAndSave)
-        .thenRunAsync(() -> log.info("Finished inserting all current flights"))
-        .exceptionally(
-            e -> {
-              log.error("Got an exception in the scheduled task when retrieving states; ", e);
-              return null;
-            });
+    try {
+      var resp = retrieveAllStates(instance.getCoordinates());
+      convertAndSave(resp);
+
+      log.info("Finished inserting all current flights");
+
+    } catch (InterruptedException | IOException e) {
+      log.error("Got an exception in the scheduled task when retrieving states; ", e);
+    }
   }
 
   public CompletableFuture<Void> convertAndSave(MessageResponse messageResponse) {
@@ -83,9 +84,10 @@ public class FlightsClient {
         .setStatusCode(String.valueOf(msg.statusCode()));
   }
 
-  public CompletionStage<MessageResponse> retrieveAllStates(List<Coordinates> coordinatesList) {
-    return this.httpClient
-        .sendAsync(
+  public MessageResponse retrieveAllStates(List<Coordinates> coordinatesList)
+      throws IOException, InterruptedException {
+    var resp =
+        this.httpClient.send(
             HttpRequest.newBuilder()
                 .GET()
                 .uri(
@@ -116,9 +118,8 @@ public class FlightsClient {
                                 .getPosition()))
                 .header("Accept", "application/json")
                 .build(),
-            HttpResponse.BodyHandlers.ofString())
-        .thenApply(this::handleHTTPResponse)
-        .toCompletableFuture();
+            HttpResponse.BodyHandlers.ofString());
+    return handleHTTPResponse(resp);
   }
 
   public HttpClient getHttpClient() {
