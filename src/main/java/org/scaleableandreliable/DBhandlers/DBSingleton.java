@@ -124,16 +124,19 @@ public class DBSingleton {
     }
   }
 
-  public void insertStates(AircraftState aircraftState) {
+  public void insertStates(List<AircraftState> aircraftState) {
     try (var session = ds.getConnection();
         var statement = session.prepareStatement(sqlState)) {
 
-      prepareInsert(statement, aircraftState);
-      statement.execute();
+      for (AircraftState state : aircraftState) {
+        prepareInsert(statement, state);
+        statement.addBatch();
+      }
+      statement.executeBatch();
 
-      log.info("Added state for icao" + aircraftState.getIcao24());
+      log.info("Added " + aircraftState.size() + " states");
     } catch (SQLException e) {
-      log.error("Got an error while inserting " + aircraftState.getIcao24(), e);
+      log.error("Got an error while inserting states in scheduled task");
     }
   }
 

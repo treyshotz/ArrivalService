@@ -18,6 +18,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -56,12 +57,12 @@ public class FlightsClient {
     var g = new Gson();
 
     var jsonObject = g.fromJson(json, JsonObject.class);
-
+    var list = new ArrayList<AircraftState>();
     for (JsonElement jsonElement : jsonObject.get("states").getAsJsonArray()) {
       JsonArray arr = jsonElement.getAsJsonArray();
-
-      instance.insertStates(new AircraftState(arr, jsonObject.get("time").getAsLong()));
+      list.add(new AircraftState(arr, jsonObject.get("time").getAsLong()));
     }
+    instance.insertStates(list);
     return new CompletableFuture<>();
   }
 

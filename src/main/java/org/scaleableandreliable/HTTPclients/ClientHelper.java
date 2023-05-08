@@ -73,18 +73,17 @@ public class ClientHelper {
         .thenApply(ClientHelper::handleHTTPResponse)
         .toCompletableFuture();
   }
-  
+
   // TODO: Finish me with real times
   public static String getStartTime() {
     return String.valueOf(Instant.now().minus(30, ChronoUnit.MINUTES).getEpochSecond());
   }
-  
+
   // TODO: Finish me with real times
   public static String getEndTime() {
     return String.valueOf(Instant.now().getEpochSecond());
   }
-  
-  
+
   public static class MessageResponse {
     String message;
     String statusCode;

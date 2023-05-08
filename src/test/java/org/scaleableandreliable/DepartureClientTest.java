@@ -13,6 +13,7 @@ import org.scaleableandreliable.HTTPclients.ClientHelper.MessageResponse;
 import org.scaleableandreliable.HTTPclients.DepartureClient;
 import org.scaleableandreliable.models.Arrivals;
 
+import java.io.IOException;
 import java.net.http.HttpClient;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +55,7 @@ class DepartureClientTest {
     client.convertAndSave(
         new MessageResponse().setMessage(json).setStatusCode(statusCode));
 
-    verify(instance, times(2)).insertArrDep(any(Arrivals.class), anyString());
+    verify(instance, times(1)).insertBatchArrDep(anyList(), anyString());
   }
 
   @Test
@@ -69,7 +70,7 @@ class DepartureClientTest {
     client.convertAndSave(
         new MessageResponse().setMessage(json).setStatusCode(statusCode));
 
-    verify(instance, times(1)).insertArrDep(any(Arrivals.class), anyString());
+    verify(instance, times(1)).insertBatchArrDep(anyList(), anyString());
   }
 
   @Test
@@ -81,20 +82,7 @@ class DepartureClientTest {
   void testGetEndTime() {
     assertThat(client.getEndTime(), isA(String.class));
   }
-
-  @Test
-  void testRetrieveArrivalsAirportIntervalSingle() {
-    var httpMock = mock(HttpClient.class);
-    doReturn(new CompletableFuture<>().minimalCompletionStage())
-        .when(httpMock)
-        .sendAsync(any(), any());
-    client.setHttpClient(httpMock);
-
-//    client.retrieveDepartureAirportInterval("", "", "");
-
-    verify(httpMock, times(1)).sendAsync(any(), any());
-  }
-
+  
   @Test
   @Disabled("Use this for helper class")
   void testRetrieveArrivalsAirportIntervalMultiple() {

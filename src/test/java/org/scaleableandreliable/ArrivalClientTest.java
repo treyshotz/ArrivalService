@@ -56,7 +56,7 @@ class ArrivalClientTest {
     client.convertAndSave(
             new MessageResponse().setMessage(json).setStatusCode(statusCode));
 
-    verify(instance, times(2)).insertArrDep(any(Arrivals.class), anyString());
+    verify(instance, times(1)).insertBatchArrDep(anyList(), anyString());
   }
 
   @Test
@@ -71,7 +71,7 @@ class ArrivalClientTest {
     client.convertAndSave(
             new MessageResponse().setMessage(json).setStatusCode(statusCode));
 
-    verify(instance, times(1)).insertArrDep(any(Arrivals.class), anyString());
+    verify(instance, times(1)).insertBatchArrDep(anyList(), anyString());
   }
 
   @Test

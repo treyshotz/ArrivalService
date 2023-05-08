@@ -13,6 +13,7 @@ import org.scaleableandreliable.models.AircraftState;
 import org.scaleableandreliable.models.Arrivals;
 
 import java.sql.*;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -116,9 +117,9 @@ class DBSingletonTest {
         "ABC", "ABC", "NOR", 123, 123, 12.3f, 12.3f, 12.3f, false, 321f, 123f, 123f, null, 123.0f,
         "ABC", false, 4, 4, 123L);
 
-    instance.insertStates(testState);
+    instance.insertStates(List.of(testState));
     verify(logMock, times(1)).info(anyString());
-    verify(stateMock, times(1)).execute();
+    verify(stateMock, times(1)).executeBatch();
   }
 
   @Test
