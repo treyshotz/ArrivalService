@@ -51,4 +51,4 @@ jobs:
           app-name: 'airspaceit'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_8EC155116A1A4412B19A539A95A877E2 }}
-          package: '*.war'
+          package: '*.jar'
