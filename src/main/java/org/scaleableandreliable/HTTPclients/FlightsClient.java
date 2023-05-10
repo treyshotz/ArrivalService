@@ -123,26 +123,14 @@ public class FlightsClient {
     return handleHTTPResponse(resp);
   }
 
-  public HttpClient getHttpClient() {
-    return httpClient;
-  }
-
   public FlightsClient setHttpClient(HttpClient httpClient) {
     this.httpClient = httpClient;
     return this;
   }
 
-  public DBSingleton getInstance() {
-    return instance;
-  }
-
   public FlightsClient setInstance(DBSingleton instance) {
     this.instance = instance;
     return this;
-  }
-
-  public Logger getLog() {
-    return log;
   }
 
   public FlightsClient setLog(Logger log) {

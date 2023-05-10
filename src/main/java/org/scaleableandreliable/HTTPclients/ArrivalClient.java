@@ -3,7 +3,6 @@ package org.scaleableandreliable.HTTPclients;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
 import org.jboss.logging.Logger;
 import org.scaleableandreliable.DBhandlers.DBSingleton;
@@ -11,7 +10,6 @@ import org.scaleableandreliable.models.Arrivals;
 import org.scaleableandreliable.models.HistoryCollect;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.net.http.HttpClient;
@@ -33,10 +31,6 @@ public class ArrivalClient {
       HttpClient.newBuilder().executor(executorService).version(HttpClient.Version.HTTP_2).build();
   @Inject DBSingleton instance;
   @Inject Logger log;
-
-  void onApplicationStart(@Observes StartupEvent e) {
-    collectHistoricalData();
-  }
 
   public void collectHistoricalData() {
     if (instance.getCollects().isEmpty()) {
@@ -94,6 +88,8 @@ public class ArrivalClient {
 
   @Scheduled(every = "30m")
   public void sendArrivalRequests() {
+    collectHistoricalData();
+
     if (instance.getAirports().isEmpty()) {
       instance.retrieveAirportsFromDB();
     }
@@ -161,10 +157,6 @@ public class ArrivalClient {
   public ArrivalClient setInstance(DBSingleton instance) {
     this.instance = instance;
     return this;
-  }
-
-  public Logger getLog() {
-    return log;
   }
 
   public ArrivalClient setLog(Logger log) {

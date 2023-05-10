@@ -3,7 +3,6 @@ package org.scaleableandreliable.HTTPclients;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
 import org.jboss.logging.Logger;
 import org.scaleableandreliable.DBhandlers.DBSingleton;
@@ -12,11 +11,9 @@ import org.scaleableandreliable.models.Departures;
 import org.scaleableandreliable.models.HistoryCollect;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.net.http.HttpClient;
-import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -36,10 +33,6 @@ public class DepartureClient {
 
   @Inject DBSingleton instance;
   @Inject Logger log;
-
-  void onApplicationStart(@Observes StartupEvent e) {
-    collectHistoricalData();
-  }
 
   public void collectHistoricalData() {
     if (instance.getCollects().isEmpty()) {
@@ -97,6 +90,8 @@ public class DepartureClient {
 
   @Scheduled(every = "30m")
   public void sendArrivalRequests() {
+    collectHistoricalData();
+
     if (instance.getAirports().isEmpty()) {
       instance.retrieveAirportsFromDB();
     }
@@ -151,20 +146,12 @@ public class DepartureClient {
   String getStartTime() {
     var start = Instant.now().minus(5, ChronoUnit.DAYS).getEpochSecond();
     return String.valueOf(start);
-    //    return "1517227200";
   }
 
   // TODO: Finish me with real times
   public String getEndTime() {
     var end = Instant.now().getEpochSecond();
     return String.valueOf(end);
-    //    return "1517230800";
-  }
-
-  MessageResponse handleHTTPResponse(HttpResponse<String> msg) {
-    return new MessageResponse()
-        .setMessage(msg.body())
-        .setStatusCode(String.valueOf(msg.statusCode()));
   }
 
   public HttpClient getHttpClient() {
@@ -183,10 +170,6 @@ public class DepartureClient {
   public DepartureClient setInstance(DBSingleton instance) {
     this.instance = instance;
     return this;
-  }
-
-  public Logger getLog() {
-    return log;
   }
 
   public DepartureClient setLog(Logger log) {
