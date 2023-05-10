@@ -28,7 +28,8 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: java-app
-          path: '${{ github.workspace }}/target/quarkus-app/*.jar'
+          path: '${{ github.workspace }}/target/*.jar'
+          required: true
 
   deploy:
     runs-on: ubuntu-latest
